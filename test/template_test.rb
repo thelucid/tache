@@ -1,0 +1,36 @@
+require File.expand_path('../helper', __FILE__)
+
+class TemplateTest < Test::Unit::TestCase
+  def setup
+    @tache_klass = Class.new(Tache) { def thing; 'World'; end }
+  end
+  
+  test 'can compile' do
+    template = Tache::Template.new('Hello {{thing}}')
+    
+    assert_equal false, template.compiled?    
+    template.compile
+    assert_equal true, template.compiled?
+  end
+  
+  test 'can render after compiling' do
+    template = Tache::Template.new('Hello {{thing}}')    
+    template.compile
+    
+    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+  end
+  
+  test 'can lazily compile at render' do
+    template = Tache::Template.new('Hello {{thing}}')
+    
+    assert_equal false, template.compiled?
+    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+    assert_equal true, template.compiled?
+  end
+  
+  test 'can specify tags' do
+    template = Tache::Template.new('Hello <%thing%>', :tags => %w(<% %>))    
+    
+    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+  end
+end
