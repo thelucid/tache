@@ -3,22 +3,6 @@
 
 Tache is a **full Mustache implementation** with the *addition* of "safe" views. Safe views allow Tache templates to be edited by end users without the risk jeopardising your application's security. When using safe views, only allowed methods are called and therefore calls to potentially destructive methods e.g. 'eval', 'destroy', etc. are ignored.
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-    gem 'tache'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install tache
-    
-Note: Tache requires at least Ruby 1.9.
-
 ## Usage
 
 Tache's safe views are opt-in, so Tache will work just as you'd expect a Mustache implementation to behave unless you say otherwise.
@@ -210,9 +194,25 @@ More on that soon. You can even precompile a punch of partials (they'll get comp
     }
     compiled.render
 
+## Installation
+
+Add this line to your application's Gemfile:
+
+    gem 'tache'
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install tache
+
+Note: Tache requires at least Ruby 1.9.
+
 ## Testing
 
-Tests are written in Test::Unit and can be run with Guard:
+Tests are written with Test::Unit and can be run with Guard:
 
     bundle
     bundle exec guard   
