@@ -1,13 +1,13 @@
 # Tache
 ## Just enough Mustache for end users
 
-Tache is a **full Mustache implementation** with the *addition* of "safe" views. Safe views allow Tache templates to be edited by end users without the risk jeopardising your application's security. When using safe views, only allowed methods are called and therefore calls to potentially destructive methods e.g. 'eval', 'destroy', etc. are ignored.
+Tache is a **full Mustache implementation** with the *addition* of "safe" views. Safe views allow Tache templates to be edited by end users without the risk jeopardising your application's security. When using safe views, only explicitly allowed methods are ever invoked and therefore calls to potentially destructive methods such as 'eval' or 'destroy' are ignored.
 
 ## Usage
 
-Tache's safe views are opt-in, so Tache will work just as you'd expect a Mustache implementation to behave unless you say otherwise.
+Tache's safe views are opt-in, so Tache will behave just as you'd expect a Mustache implementation to behave, unless *you* say otherwise.
 
-### Standard Mustache
+### Standard Views
 
 Quick example:
 
@@ -16,9 +16,9 @@ Quick example:
     
 ...you can guess the result.
 
-Please note that all hash keys must be strings when working with any Tache view, this minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore required regardless of whether or not you are using safe views.
+Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore required regardless of whether or not you are using safe views.
 
-Here's another way of doing things, no real change from Mustache:
+Here's another way of doing things (no real departure from standard Mustache):
 
     class MyView < Tache
       def planet
@@ -34,22 +34,21 @@ Here's another way of doing things, no real change from Mustache:
       end
     end
     
-    MyView.render("{{planet}} {{stars}}")
+    MyView.render("{{planet}} (rating: {{stars}})")
     
 Result:
 
-    World (star rating: *****)
-
+    World (rating: *****)
 
 ### Safe Views
 
-In order to use Tache's safe views, you simply use the `Tache::Safe` class instead:
+In order make use of Tache's safe views, you simply use `Tache::Safe` instead:
 
     require 'tache/safe'
 
     Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
     
-The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that methods otherwise available on object will simply return nothing:
+The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via either safe view methods or 'drops' (discussed below) will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
 
     Tache::Safe.render('Hello {{planet.upcase}}', 'planet' => 'World')
     => "Hello "
@@ -62,19 +61,19 @@ Another example, this time subclassing `Tache::Safe`:
       end
   
       def present
-        "I'm here!"
+        'I'm here!'
       end
   
       def bold
         lambda do |text|
-          "<b>#{render(text)}</b>"
+          '<b>' + render(text) + '</b>'
         end
       end
     end
 
 Template:
 
-    Hello {{thing}}, here's safe mode:
+    Hello {{thing}}, here's safe view in action:
 
     self            -> {{.}}
     inspect         -> {{inspect}}
@@ -91,7 +90,7 @@ Render:
    
 Result:
 
-    Hello World, here's safe mode:
+    Hello World, here's safe view in action:
 
     self            -> 
     inspect         -> 
@@ -100,11 +99,11 @@ Result:
     present         -> I'm here!
     present.upcase  -> 
 
-    Bold: <b>Worldy</b>
+    Bold: <b>World</b>
   
-Notice how lambda's still work just fine but anything not explicitly exposed is unavailable to the template.
+Notice how lambda's still work just as you'd expect but only explicitly exposed values are in the rendered output.
 
-So, what if we do want to expose something other than hash values or view object methods to our templates? Well that's a job for Tache Drops
+So, what if we want to expose something other than hash values or view object methods to our templates? Well that's a job for Tache Drops.
 
 ###Drops
 
