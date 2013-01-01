@@ -16,7 +16,7 @@ Quick example:
     
 ...you can guess the result.
 
-Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a requirement, regardless of whether or not you are using safe views.
+Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a general requirement of Tache, regardless of whether or not you are using safe views.
 
 Here's another way of doing things (no real departure from standard Mustache):
 
