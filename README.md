@@ -5,7 +5,7 @@ Tache is a **full Mustache implementation** with the *addition* of "safe" views.
 
 ## Usage
 
-Tache's safe views are opt-in, so Tache will behave just as you'd expect a Mustache implementation to behave, unless *you* say otherwise.
+Tache's safe views are an opt-in feature, so Tache will behave just as you'd expect a standard Mustache implementation to behave, unless *you* say otherwise.
 
 ### Standard Views
 
@@ -16,7 +16,7 @@ Quick example:
     
 ...you can guess the result.
 
-Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore required regardless of whether or not you are using safe views.
+Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a requirement, regardless of whether or not you are using safe views.
 
 Here's another way of doing things (no real departure from standard Mustache):
 
