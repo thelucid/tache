@@ -168,9 +168,9 @@ Result:
 
     Bad luck hacker!
 
-### Todo
+### Compiled templates and partials
 
-Documentation on compiled templates and partials, coming soon! For now, just see the code (it's pretty straight forward):
+Proper documentation on compiled templates and partials coming soon! For now, just see the code (it's pretty straight forward):
 
     # Compiled
     compiled = MyView.compile('Hello {{thing}}')
@@ -184,7 +184,7 @@ Documentation on compiled templates and partials, coming soon! For now, just see
     compiled.partials['partial'] = 'World
     compiled.render
     
-More on that soon. You can even precompile a punch of partials (they'll get compiled for you automatically anyway but handy to know):
+You can even precompile a punch of partials (they'll get compiled for you automatically anyway but handy to know):
 
     compiled = MyView.compile('Hello {{>partial1}}, {{>partial2}}')
     compiled.partials = { 
