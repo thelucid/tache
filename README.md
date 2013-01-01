@@ -1,7 +1,9 @@
 # Tache
 ## Just enough Mustache for end users
 
-Tache is a **full Mustache implementation** with the *addition* of "safe" views. Safe views allow Tache templates to be edited by end users without the risk jeopardising your application's security. When using safe views, only explicitly allowed methods are ever invoked and therefore calls to potentially destructive methods such as 'eval' or 'destroy' are ignored.
+Tache is a **full [Mustache](http://mustache.github.com/) implementation** with the *addition* of 'safe views'.
+
+Safe views allow Tache templates to be edited by end users, without the risk jeopardising your application's security. When using safe views, only explicitly allowed methods are ever invoked and therefore calls to potentially destructive methods such as 'eval' or 'destroy' are ignored.
 
 ## Usage
 
