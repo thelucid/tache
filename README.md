@@ -174,6 +174,46 @@ Result:
 
     Bad luck hacker!
 
+###Drop shortcut
+
+It can become monotonous having to create a drop class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating drops from existing objects.
+
+Simply call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a drop class for you behind the scenes:
+
+    class Person
+      tache :name, :occupation
+      
+      def name
+        'Jamie'
+      end
+      
+      def occupation
+        'Developer'
+      end
+      
+      def age
+        "Don't ask"
+      end
+    end
+    
+Template
+
+    {{#person}}
+    Name: {{name}}
+    Occupation: {{occupation}}
+    Age: {{age}}
+    {{/person}}
+    
+Render
+    
+    Tache::Safe.render(template, { 'person' => Person.new })
+    
+Result
+    
+    Name: Jamie
+    Occupation: Developer
+    Age: 
+
 ### Compiled templates and partials
 
 Proper documentation on compiled templates and partials coming soon! For now, just see the code (it's pretty straight forward):

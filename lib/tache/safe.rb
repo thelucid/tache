@@ -1,11 +1,6 @@
 require 'tache'
 require 'date'
 
-# Give all core types a 'to_tache' method that returns self.
-%w(String Array Hash Numeric Time Date DateTime TrueClass FalseClass NilClass).each do |klass|
-  Kernel.const_get(klass).class_eval { define_method(:to_tache) { self } }
-end
-  
 class Tache::Safe < Tache
   def context
     @context ||= Context.make(self)
@@ -64,4 +59,29 @@ class Tache::Drop
 
   # Must happen after method definitions.
   GUARDED = public_instance_methods.map(&:to_s)
+end
+
+# Give all core types a 'to_tache' method that returns self.
+%w(String Array Hash Numeric Time Date DateTime TrueClass FalseClass NilClass).each do |klass|
+  Kernel.const_get(klass).class_eval { define_method(:to_tache) { self } }
+end
+
+# A shortcut method that creates a drop class containing allowed_methods and a
+# to_tache method that returns an instance of the drop class.
+class Module
+  def tache(*allowed_methods)
+    drop_class = Class.new(Tache::Drop) do
+      def initialize(object)
+        @object = object
+      end
+      allowed_methods.each do |sym|
+        define_method sym do
+          @object.send sym
+        end
+      end
+    end
+    
+    self.const_set 'TacheDrop', drop_class    
+    define_method(:to_tache) { drop_class.new(self) }
+  end
 end

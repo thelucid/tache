@@ -29,6 +29,22 @@ class SafeTest < Test::Unit::TestCase
         "[DropClass]"
       end
     end
+    
+    @person_class = Class.new do
+      tache :name, :occupation
+      
+      def name
+        'Jamie'
+      end
+      
+      def occupation
+        'Developer'
+      end
+      
+      def age
+        "Don't ask"
+      end
+    end
   end
 
   test 'filters guarded methods' do
@@ -56,5 +72,14 @@ class SafeTest < Test::Unit::TestCase
     view = Tache::Safe.compile(source)
     assert_equal  "Hello World, present: I'm here baby!, drop: [DropClass]",
                   view.render('thing' => 'World', 'drop' => @verbose_drop_class.new)
+  end
+  
+  test 'can use shortcut tache method' do    
+    view = Tache::Safe.compile( "{{#person}}Name: {{name}}, " <<
+                                "Occupation: {{occupation}}, " <<
+                                "Age: {{age}}{{/person}}" )
+                                
+    assert_equal  'Name: Jamie, Occupation: Developer, Age: ',
+                  view.render({ 'person' => @person_class.new })
   end
 end
