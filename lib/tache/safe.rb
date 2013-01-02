@@ -1,3 +1,4 @@
+require 'tache'
 require 'date'
 
 # Give all core types a 'to_tache' method that returns self.
