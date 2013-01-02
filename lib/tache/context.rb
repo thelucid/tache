@@ -37,7 +37,7 @@ class Tache::Context
       @cache[name] = value
     end
 
-    value#.is_a?(Proc) ? value.call : value
+    value
   end
 
   def escape(str)
@@ -51,7 +51,7 @@ class Tache::Context
   private
   
   # Could provide verbose mode that returns: "[missing: #{name}]"
-  # ...or maybe pass to Tache instance as 'escape' and 'partal'.
+  # ...or maybe pass to Tache instance like 'escape' and 'partal'.
   def missing(name)
     nil
   end
