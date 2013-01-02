@@ -47,7 +47,6 @@ Result:
 In order make use of Tache's safe views, you simply use `Tache::Safe` instead:
 
     require 'tache/safe'
-
     Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
     
 The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via either safe view methods or 'drops' (discussed below) will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
