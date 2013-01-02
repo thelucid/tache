@@ -14,9 +14,9 @@ Tache's safe views are an opt-in feature, so Tache will behave just as you'd exp
 Quick example:
 
     require 'tache'
-    Tache.render('Hello {{planet}}', 'planet' => 'World')
     
-...you can guess the result.
+    Tache.render('Hello {{planet}}', 'planet' => 'World')
+    => "Hello World"
 
 Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a general requirement of Tache, regardless of whether or not you are using safe views.
 
@@ -47,7 +47,9 @@ Result:
 In order make use of Tache's safe views, you simply use `Tache::Safe` instead:
 
     require 'tache/safe'
+    
     Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
+    => "Hello World"
     
 The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via either safe view methods or 'drops' (discussed below) will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
 
