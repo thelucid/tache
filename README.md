@@ -36,7 +36,8 @@ Here's another way of doing things (no real departure from standard Mustache):
       end
     end
     
-    MyView.render("{{planet}} (rating: {{stars}})")
+    view = MyView.compile("{{planet}} (rating: {{stars}})")
+    view.render
     
 Result:
 
@@ -64,7 +65,7 @@ Another example, this time subclassing `Tache::Safe`:
       end
   
       def present
-        'I'm here!'
+        "I'm here!"
       end
   
       def bold
@@ -89,7 +90,8 @@ Template:
 
 Render:
 
-    MySafeView.render(template)
+    view = MySafeView.compile(template)
+    view.render
    
 Result:
 
@@ -162,7 +164,8 @@ Template:
 
 Render:
 
-    CartView.render(template)
+    view = CartView.compile(template)
+    view.render
 
 Result:
 
