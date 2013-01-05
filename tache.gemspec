@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Tache::VERSION
   gem.authors       = ["Jamie Hill"]
   gem.email         = ["jamie@thelucid.com"]
-  gem.description   = %q{Write a gem description}
-  gem.summary       = %q{Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{Just enough Mustache for end users}
+  gem.summary       = %q{Tache is a full Mustache implementation** with the addition of 'safe views'.}
+  gem.homepage      = "https://github.com/thelucid/tache"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

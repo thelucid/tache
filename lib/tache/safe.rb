@@ -22,9 +22,11 @@ class Tache::Safe < Tache
   GUARDED = public_instance_methods.map(&:to_s)
     
   class Context < Tache::Context
+    def push(view, &block)
+      super view.to_tache, &block
+    end
+    
     def resolve(view, key)
-      view = view.to_tache # TODO: revisit
-      
       if view.respond_to?(:has_key?) && view.has_key?(key)
         view[key].to_tache
       elsif view.is_a?(Tache::Safe) && view.respond_to_safe?(key)
