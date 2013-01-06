@@ -17,10 +17,6 @@ class Tache
     end
   end
   
-  def context
-    @context ||= Context.make(self)
-  end
-  
   def partials
     @partials ||= PartialCollection.new
   end
@@ -42,6 +38,12 @@ class Tache
     instance = compile(source)
     instance.partials = partials
     instance.render(view)
+  end
+  
+  private
+  
+  def context
+    @context ||= Context.make(self)
   end
   
   class PartialCollection < Hash

@@ -17,20 +17,20 @@ class TemplateTest < Test::Unit::TestCase
     template = Tache::Template.new('Hello {{thing}}')    
     template.compile
     
-    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+    assert_equal 'Hello World', template.render(Tache::Context.make(@tache_klass.new))
   end
   
   test 'can lazily compile at render' do
     template = Tache::Template.new('Hello {{thing}}')
     
     assert_equal false, template.compiled?
-    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+    assert_equal 'Hello World', template.render(Tache::Context.make(@tache_klass.new))
     assert_equal true, template.compiled?
   end
   
   test 'can specify tags' do
     template = Tache::Template.new('Hello <%thing%>', :tags => %w(<% %>))    
     
-    assert_equal 'Hello World', template.render(@tache_klass.new.context)
+    assert_equal 'Hello World', template.render(Tache::Context.make(@tache_klass.new))
   end
 end
