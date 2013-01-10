@@ -4,7 +4,7 @@ require 'cgi'
 class Tache::Parser  
   WHITE       = /\s*/
   TAG         = /#|\^|\/|>|\{|&|=|!/
-  SKIP_WHITE  = /#|\^|\/|>|=|!/
+  NON_INLINE  = /#|\^|\/|>|=|!/
   ANY_CONTENT = /!|=/
   ALLOWED     = /(\w|[\?!\/\.\-])*/
 
@@ -47,8 +47,6 @@ class Tache::Parser
       break unless scanner.skip(open)
       
       indent = scanner[1] || ''
-      prev = tokens
-      prev_index = prev.size
 
       unless newline || indent.empty?
         last = tokens.last
@@ -71,7 +69,19 @@ class Tache::Parser
       end
 
       scanner.skip(WHITE)
+      scanner.skip(/\}/) if type == '{'
+      scanner.skip(/\=/) if type == '='
 
+      error "Unclosed tag", source, scanner.pos unless scanner.skip(close)
+
+      tail = ''
+      if newline && scanner.peek(2) =~ /\r?\n/
+        tail = scanner.scan(/\r?\n/) || ''
+      elsif !scanner.eos? && !indent.empty? && NON_INLINE =~ type
+        last = tokens.last
+        last && last[0] == 'text' ? last[1] << indent : tokens << ['text', indent]
+      end
+      
       case type
       when '#', '^'
         nested = []
@@ -80,40 +90,29 @@ class Tache::Parser
         tokens = nested
       when '/'
         name, pos, tokens, last = sections.pop
-        error "Closing unopened '#{content}'", source, scanner.pos if name.nil?
+        error "Closing unopened '#{content}'", source, scanner.pos - 2 if name.nil?
         error "Unclosed section '#{name}'", source, pos if name != content
-        tokens.last << (source[last...start] + indent) << tags
+        tokens.last << (source[last...(start + indent.length)] + indent) << tags
       when '='
         tags = content.split(' ')
-        error "Invalid tags '#{tags.join(', ')}'", source, scanner.pos unless tags.size == 2
-        scanner.skip(/\=/)
+        error "Invalid tags '#{tags.join(', ')}'", source, scanner.pos - 3 unless tags.size == 2
       when '>'
         tokens << [type, content, indent]
-      when '{', '&'
-        tokens << ['&', content]
-        scanner.skip(/\}/) if type == '{'
       when '!'
         # Ignore
+      when '{', '&'
+        tokens << ['&', content, indent, tail]
       else
-        tokens << ['name', content]
+        tokens << ['name', content, indent, tail]
       end
-
-      error "Unclosed tag", source, scanner.pos unless scanner.skip(close)
-
-      if newline && !scanner.eos?
-        if scanner.peek(2) =~ /\r?\n/ && SKIP_WHITE =~ type
-          scanner.skip(/\r?\n/)
-        else
-          prev.insert(prev_index, ['text', indent]) unless indent.empty?
-        end
-      end
-
+      
+      tokens << ['line'] unless tail.empty? || scanner.eos?
       sections.last << scanner.pos unless sections.empty?
     end
 
     unless sections.empty?
       name, pos = sections.pop
-      error "Unclosed section '#{name}'", source, pos
+      error "Unclosed section '#{name}'", source, pos - 2
     end
 
     tokens

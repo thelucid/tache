@@ -24,12 +24,13 @@ class Tache::Template
     buffer = ''
     
     tokens.each do |token|
+      type = token[0]
       token_value = token[1]
       
-      case token[0]
+      case type
       when '#'
         value = context[token_value]
-        
+                
         case value
         when true
           buffer << render_tokens(token[2], context)
@@ -50,14 +51,16 @@ class Tache::Template
       when '>'
         value = context.partial(token_value)
         buffer << value.render(context, token[2]) if value
-      when '&'
+      when 'name', '&'
         value = context[token_value]
-        value = interpolate(value.call, context) if value.is_a?(Proc)
-        buffer << value.to_s unless value.nil?
-      when 'name'
-        value = context[token_value]
-        value = interpolate(value.call, context) if value.is_a?(Proc)
-        buffer << context.escape(value.to_s) unless value.nil?
+        value = if value.is_a?(Tache::Template)
+          value.render(context, token[2])
+        else
+          value = value.is_a?(Proc) ? interpolate(value.call, context) : value.to_s
+          value = token[2] + value + token[3]
+          type == 'name' ? context.escape(value) : value
+        end
+        buffer << value if value
       when 'text'
         buffer << token_value
       when 'line'

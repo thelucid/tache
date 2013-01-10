@@ -1,0 +1,16 @@
+A single-line template:
+  <ul>
+    <li>Single line: It works!</li>
+  </ul>
+
+A multi-line template:
+  <ul>
+    <li>Multi: It works!</li>
+    <li>Line: It works!</li>
+  </ul>
+
+A multi-line partial for comparison:
+  <ul>
+    <li>Multi: It works!</li>
+    <li>Line: It works!</li>
+  </ul>
