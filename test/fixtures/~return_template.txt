@@ -14,3 +14,9 @@ A multi-line partial for comparison:
     <li>Multi: It works!</li>
     <li>Line: It works!</li>
   </ul>
+  
+A collection:
+  <ul>
+    <li>First: Yep</li>
+    <li>Second: It works!</li>
+  </ul>

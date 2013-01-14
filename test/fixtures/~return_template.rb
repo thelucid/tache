@@ -10,6 +10,13 @@ class ReturnTemplateView < Tache
   def ok
     'It works!'
   end
+  
+  def collection
+    [
+      { 'template' => Tache::Template.new("<li>First: {{ok}}</li>\n"), 'ok' => 'Yep' },
+      { 'template' => Tache::Template.new("<li>Second: {{ok}}</li>\n") },
+    ]
+  end
 end
 
 ReturnTemplateView

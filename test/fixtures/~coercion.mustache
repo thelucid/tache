@@ -1,0 +1,26 @@
+Self:
+  Self: {{.}}
+
+Value:
+  <p>{{item}}</p>
+  
+  <p>
+    {{item}}
+  </p>
+
+Collection:
+  <ul>
+    {{#items}}
+    {{.}}
+    {{/items}}
+  </ul>
+
+Shortcut collection:
+  <ul>
+    {{items}}
+  </ul>
+
+Shortcut collection strings:
+  <p>
+    {{string_items}}
+  </p>

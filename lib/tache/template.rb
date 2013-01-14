@@ -5,13 +5,12 @@ class Tache::Template
   end
   
   def compile
-    @tokens = Tache::Parser.new.parse(@source, @tags)
+    tokenize
     self
   end
   
   def render(context, indent = '')
-    compile unless @tokens
-    render_tokens(@tokens, context, indent)
+    render_tokens(tokenize, context, indent)
   end
   
   def compiled?
@@ -19,6 +18,10 @@ class Tache::Template
   end
   
   private
+  
+  def tokenize
+    @tokens ||= Tache::Parser.new.parse(@source, @tags)
+  end
 
   def render_tokens(tokens, context, indent = '')
     buffer = ''
@@ -52,14 +55,7 @@ class Tache::Template
         value = context.partial(token_value)
         buffer << value.render(context, token[2]) if value
       when 'name', '&'
-        value = context[token_value]
-        value = if value.is_a?(Tache::Template)
-          value.render(context, token[2])
-        else
-          value = value.is_a?(Proc) ? interpolate(value.call, context) : value.to_s
-          value = token[2] + value + token[3]
-          type == 'name' ? context.escape(value) : value
-        end
+        value = resolve(context, context[token_value], token[2], token[3], type == 'name')
         buffer << value if value
       when 'text'
         buffer << token_value
@@ -71,8 +67,29 @@ class Tache::Template
     buffer
   end
   
+  def resolve(context, value, indent, newline, escape)
+    value = value.to_tache_value if value.respond_to?(:to_tache_value)
+    
+    if value.is_a?(Tache::Template)
+      value.render(context, indent)
+    elsif value.is_a?(Array) || value.is_a?(Enumerator)
+      last = value.last
+      last = last.to_tache_value if last.respond_to?(:to_tache_value)
+      after = last.is_a?(Tache::Template) ? '' : newline
+      value.inject('') do |memo, item|
+        context.push(item) { |child| memo << resolve(child, item, indent, '', escape) }
+        indent = '' unless memo =~ /\n$/
+        memo
+      end << after
+    else
+      value = value.is_a?(Proc) ? interpolate(value.call, context) : value.to_s
+      value = indent + value + newline
+      escape ? context.escape(value) : value
+    end
+  end
+  
   def interpolate(source, context, tags = nil)
-    self.class.new(source.to_s, :tags => tags).render(context.dup)
+    self.class.new(source.to_s, tags: tags).render(context.dup)
   end
   
   # Based on JavaScript implementation
