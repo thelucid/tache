@@ -16,6 +16,10 @@ class CoercionView < Tache
       OpenStruct.new(to_tache_value: Tache::Template.new("<li>Second: {{ok}}</li>\n")) ]
   end
   
+  def empty_items
+    []
+  end
+  
   def string_items
     ["Just a string, ", "And another"]
   end  

@@ -73,6 +73,7 @@ class Tache::Template
     if value.is_a?(Tache::Template)
       value.render(context, indent)
     elsif value.is_a?(Array) || value.is_a?(Enumerator)
+      return '' if value.empty?
       last = value.last
       last = last.to_tache_value if last.respond_to?(:to_tache_value)
       after = last.is_a?(Tache::Template) ? '' : newline

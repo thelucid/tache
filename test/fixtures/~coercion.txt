@@ -19,6 +19,10 @@ Shortcut collection:
     <li>First: Yep</li>
     <li>Second: Default OK</li>
   </ul>
+  
+Empty shortcut collection:
+  <ul>
+  </ul>
 
 Shortcut collection strings:
   <p>
