@@ -3,6 +3,11 @@ require 'tache'
 
 class Test::Unit::TestCase
   def self.test(name, &block)
-    define_method 'test_' << name.tr(' ', '_').gsub(/\W+/, ''), &block
+    name = 'test_' << name.tr(' ', '_').gsub(/\W+/, '')
+    defined = instance_method(name) rescue false
+    raise "'#{name}' already defined in #{self}" if defined
+    block ||= proc { assert_block('Pending'){ false } } # Test::Unit
+    # block ||= proc { skip('Pending') } # MiniTest
+    define_method(name, &block)
   end
 end
