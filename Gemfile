@@ -4,7 +4,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'minitest'
   gem 'guard'
   gem 'guard-test'
   gem 'rb-inotify', :require => false
