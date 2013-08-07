@@ -21,6 +21,10 @@ class SafeTest < Test::Unit::TestCase
         "I'm here baby!"
       end
 
+      def has_key?(key)
+        true
+      end
+
       def key_missing(key)
         "[missing: #{key}]"
       end
@@ -81,5 +85,15 @@ class SafeTest < Test::Unit::TestCase
                                 
     assert_equal  'Name: Jamie, Occupation: Developer, Age: ',
                   view.render({ 'person' => @person_class.new })
+  end
+  
+  test 'can use nested scopes' do    
+    view = Tache::Safe.compile( "{{#person}}Name: {{name}}, " <<
+                                "Occupation: {{occupation}}, " <<
+                                "Age: {{age}}, " <<
+                                "Present: {{parent}}{{/person}}" )
+                                
+    assert_equal  "Name: Jamie, Occupation: Developer, Age: , Present: I'm the daddy!",
+                  view.render({ 'parent' => "I'm the daddy!", 'person' => @person_class.new })
   end
 end

@@ -28,7 +28,7 @@ class Tache::Safe < Tache
     
     def resolve(view, key)
       if view.respond_to?(:has_key?) && view.has_key?(key)
-        view[key].to_tache
+        view[key] == :_missing ? :_missing : view[key].to_tache
       elsif view.is_a?(Tache::Safe) && view.respond_to_safe?(key)
         value = view.method(key).call
         value.is_a?(Proc) ? value : value.to_tache
@@ -45,8 +45,14 @@ class Tache::Drop
     present ? send(key) : key_missing(key)
   end
 
+  # TODO: This means that subclasses have to override has_key? if they want to
+  # support key_missing. The other option is to return :_missing from
+  # key_missing by default and stipulate that subclasses must call super if
+  # they can't find the key, that does however mean a couple of extra method
+  # calls, one to [] and one to key_missing, even if key not supported. Is
+  # extra overhead worth it for being able to override just key_missing?
   def has_key?(key)
-    true
+    !GUARDED.include?(key) && self.class.public_method_defined?(key)
   end
 
   def key_missing(key)
