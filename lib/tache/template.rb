@@ -34,19 +34,18 @@ class Tache::Template
       when '#'
         value = context[token_value]
                 
-        case value
-        when true
+        if value == true
           buffer << render_tokens(token[2], context)
-        when Proc
-          buffer << interpolate(value.call(token[3]), context, token[4])  
-        when Array, Enumerator
-          value.each do |item|
-            context.push(item) { |child| buffer << render_tokens(token[2], child) }
-          end
-        else
+        elsif value.respond_to?(:call)
+          buffer << interpolate(value.call(token[3]), context, token[4])
+        elsif value.respond_to?(:has_key?) || !value.respond_to?(:each)
           context.push(value) do |child|
             buffer << render_tokens(token[2], child)
           end unless falsy?(value)
+        else # It must respond to each
+          value.each do |item|
+            context.push(item) { |child| buffer << render_tokens(token[2], child) }
+          end
         end
       when '^'
         value = context[token_value]
@@ -72,8 +71,8 @@ class Tache::Template
     
     if value.is_a?(Tache::Template)
       value.render(context, indent)
-    elsif value.is_a?(Array) || value.is_a?(Enumerator)
-      return '' if value.empty?
+    elsif value.respond_to?(:each)
+      return '' unless value.count > 0
       last = value.last
       last = last.to_tache_value if last.respond_to?(:to_tache_value)
       after = last.is_a?(Tache::Template) ? '' : newline

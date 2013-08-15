@@ -51,6 +51,17 @@ class Tache::Drop
   # they can't find the key, that does however mean a couple of extra method
   # calls, one to [] and one to key_missing, even if key not supported. Is
   # extra overhead worth it for being able to override just key_missing?
+  # 
+  # Example:
+  #   def has_key?(key)
+  #     super || @thingy.respond_to?(key)
+  #   end
+  #   
+  #   def key_missing(key)
+  #     @thingy.send(key)
+  #   end
+  # 
+  # Another option would be to have a handles_key? method akin to responds_to_missing?
   def has_key?(key)
     !GUARDED.include?(key) && self.class.public_method_defined?(key)
   end
