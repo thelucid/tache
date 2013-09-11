@@ -52,7 +52,7 @@ In order make use of Tache's safe views, you simply use `Tache::Safe` instead:
     Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
     => "Hello World"
     
-The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via either safe view methods or 'drops' (discussed below) will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
+The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via safe view methods will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
 
     Tache::Safe.render('Hello {{planet.inspect}}', 'planet' => 'World')
     => "Hello "
@@ -108,11 +108,7 @@ Result:
   
 Notice how lambda's still work just as you'd expect but only explicitly exposed values are in the rendered output.
 
-So, what if we want to expose something other than hash values or view object methods to our templates? Well that's a job for Tache Drops.
-
-###Drops
-
-Tache Drops are a concept borrowed from the Liquid template engine. They allow for a way to expose properties of an otherwise unsafe object to a template, safely.
+So, what if we want to expose something other than hash values or view object methods to our templates? Just subclass `Tache::Safe` and you're good to go, it's turtles all the way down:
 
 Example:
 
@@ -135,7 +131,7 @@ Example:
       end
     end
 
-    class ProductDrop < Tache::Drop
+    class ProductView < Tache::Safe
       def initialize(product)
         @product = product
       end
@@ -151,7 +147,7 @@ Example:
 
     class CartView < Tache::Safe
       def product
-        ProductDrop.new(Product.first)
+        ProductView.new(Product.first)
       end
     end
 
@@ -174,13 +170,15 @@ Result:
 
     Bad luck hacker!
 
-###Drop shortcut
+###Safe view shortcut
 
 It can become monotonous having to create a drop class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating drops from existing objects.
 
-Simply call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a drop class for you behind the scenes:
+Simply call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safd view for you behind the scenes:
 
     class Person
+      include Tache::Safe::Auto
+    
       tache :name, :occupation
       
       def name

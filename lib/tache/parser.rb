@@ -1,5 +1,6 @@
-require 'strscan'
-require 'cgi'
+# Note: Currently requires strscan be made available to the target app via
+# MotionBundler. We could just rewrite to not use strscan which may actually
+# make the code more concise.
 
 class Tache::Parser  
   WHITE       = /\s*/
@@ -43,7 +44,7 @@ class Tache::Parser
 
       newline = scanner.bol?
       start = scanner.pos
-      
+
       break unless scanner.skip(open)
       
       indent = scanner[1] || ''
@@ -56,7 +57,18 @@ class Tache::Parser
       end
 
       scanner.skip(WHITE)
-      type = scanner.scan(TAG)
+      
+      # It seems that MacRuby's implementation of scan is inconsistent with MRI
+      # so rewritten using peek:
+      #   type = scanner.scan(TAG)
+      peek = scanner.peek(1)
+      if peek =~ TAG
+        type = peek
+        scanner.pos += 1
+      else
+        type = nil
+      end
+
       scanner.skip(WHITE)
 
       content = if ANY_CONTENT =~ type

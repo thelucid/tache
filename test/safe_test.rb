@@ -35,6 +35,7 @@ class SafeTest < Test::Unit::TestCase
     end
     
     @person_class = Class.new do
+      include Tache::Safe::Auto
       tache :name, :occupation
       
       def name
