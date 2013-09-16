@@ -1,5 +1,5 @@
 # Tache
-## Just enough Mustache for end users
+## Full Mustache implementation with a safe mode for end users
 
 Tache is a **full [Mustache](http://mustache.github.com/) implementation** with the *addition* of 'safe views'.
 
@@ -172,9 +172,9 @@ Result:
 
 ###Safe view shortcut
 
-It can become monotonous having to create a drop class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating drops from existing objects.
+It can become monotonous having to create a safe view class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating safe views from existing objects.
 
-Simply call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safd view for you behind the scenes:
+Simply include the `Tache::Safe::Auto` module and call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safe view for you behind the scenes:
 
     class Person
       include Tache::Safe::Auto
@@ -264,7 +264,7 @@ Tests are written with Test::Unit and can be run with Guard:
 
 Thanks to [Chris Wanstrath](https://github.com/defunkt) for the original Ruby implementation and [Jan Lehnardt](https://github.com/janl) for his JavaScript port (I took a great deal of inspiration, understanding and tests from this version).
 
-Thanks also go out to the guys at [Shopify](https://github.com/Shopify) for the Liquid::Drop inspiration and [Gwendal Roué](https://github.com/groue) for putting up with my brainstorming on GitHub.
+Thanks also to the guys at [Shopify](https://github.com/Shopify) for their `Liquid::Drop` inspiration and [Gwendal Roué](https://github.com/groue) for putting up with my brainstorming on GitHub.
 
 ## Contributing
 
