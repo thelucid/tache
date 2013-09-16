@@ -1,5 +1,5 @@
 # Tache
-## Full Mustache implementation with a safe mode for end users
+## Full Mustache implementation with a safe views for end users
 
 Tache is a **full [Mustache](http://mustache.github.com/) implementation** with the *addition* of 'safe views'.
 
