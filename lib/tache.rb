@@ -4,6 +4,7 @@ if defined?(Motion::Project::Config)
     Dir.glob("#{base}/*.rb").each do |file|
       app.files.unshift(file)
     end
+    app.files_dependencies "#{base}/parser.rb" => "#{base}/strscan.rb"
     app.files_dependencies "#{base}/safe.rb" => "#{base}/context.rb"
     app.files_dependencies "#{base}/tache.rb" => "#{base}/context.rb"
   end

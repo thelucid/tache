@@ -1,13 +1,6 @@
-# Note: Currently requires cgi be made available to the target app via
-# MotionBundler (for html escaping). We could just rewrite to not use the
-# escape method using:
-#
-#   ENTITIES = { '&' => '&amp;', '"' => '&quot;', '<' => '&lt;', '>' => '&gt;' }
-#   def escape
-#     string.gsub(/[&\"<>]/, ENTITIES)
-#   end
-
 class Tache
+  ENTITIES = { '&' => '&amp;', '"' => '&quot;', '<' => '&lt;', '>' => '&gt;' }
+  
   def compile(source, options = {})
     @compiled = Template.new(source, options).compile
     self
@@ -30,8 +23,10 @@ class Tache
     hash.each { |key, value| @partials[key] = value }
   end
   
-  def escape(str)
-    CGI.escapeHTML(str)
+  def escape(string)
+    # TODO: When RubyMotion gets CGI support, just do:
+    #   CGI.escapeHTML(string)
+    string.gsub(/[&\"<>]/, ENTITIES)
   end
   
   def self.compile(source)

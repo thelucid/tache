@@ -1,6 +1,6 @@
-# Note: Currently requires strscan be made available to the target app via
-# MotionBundler. We could just rewrite to not use strscan which may actually
-# make the code more concise.
+# Note: Currently requires MacRuby strscan to be compatible with RubyMotion, it
+# looks like standard lib support is planned for MacRuby so strscan.rb can then
+# be removed from here.
 
 class Tache::Parser  
   WHITE       = /\s*/

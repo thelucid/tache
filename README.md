@@ -1,9 +1,11 @@
 # Tache
 ## Full Mustache implementation plus 'safe views'.
 
-Tache is a **full [Mustache](http://mustache.github.com/) implementation** with the *addition* of 'safe views'.
+Tache is a **full spec-compliant [Mustache](http://mustache.github.com/) implementation** with the *addition* of 'safe views'.
 
 Safe views allow Tache templates to be edited by end users, without the risk jeopardising your application's security. When using safe views, only explicitly allowed methods are ever invoked and therefore calls to potentially destructive methods such as 'eval' or 'destroy' are ignored.
+
+#### Now with RubyMotion support.
 
 ## Usage
 
@@ -252,6 +254,12 @@ Or install it yourself as:
     $ gem install tache
 
 Note: Tache requires at least Ruby 1.9.
+
+### RubyMotion
+
+As above, then just require it in your Rakefile:
+
+    require 'tache'
 
 ## Testing
 

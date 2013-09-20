@@ -8,8 +8,8 @@ Gem::Specification.new do |gem|
   gem.version       = Tache::VERSION
   gem.authors       = ["Jamie Hill"]
   gem.email         = ["jamie@thelucid.com"]
-  gem.description   = %q{Just enough Mustache for end users}
-  gem.summary       = %q{Tache is a full Mustache implementation** with the addition of 'safe views'.}
+  gem.description   = %q{Full Mustache implementation plus 'safe views'.}
+  gem.summary       = %q{Tache is a full spec-compliant Mustache implementation** with the addition of 'safe views'.}
   gem.homepage      = "https://github.com/thelucid/tache"
 
   gem.files         = `git ls-files`.split($/)
