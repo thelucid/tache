@@ -53,33 +53,34 @@
 
 <p>Quick example:</p>
 
-<pre><code>require 'tache'
+<div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s1">'tache'</span>
 
-Tache.render('Hello {{planet}}', 'planet' =&gt; 'World')
-=&gt; "Hello World"
-</code></pre>
+<span class="no">Tache</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">'Hello {{planet}}'</span><span class="p">,</span> <span class="s1">'planet'</span> <span class="o">=&gt;</span> <span class="s1">'World'</span><span class="p">)</span>
+
+<span class="o">=&gt;</span> <span class="s2">"Hello World"</span>
+</pre></div>
 
 <p>Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a general requirement of Tache, regardless of whether or not you are using safe views.</p>
 
 <p>Here's another way of doing things (no real departure from standard Mustache):</p>
 
-<pre><code>class MyView &lt; Tache
-  def planet
-    'World'
-  end
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">MyView</span> <span class="o">&lt;</span> <span class="no">Tache</span>
+  <span class="k">def</span> <span class="nf">planet</span>
+    <span class="s1">'World'</span>
+  <span class="k">end</span>
 
-  def star
-    '*'
-  end
+  <span class="k">def</span> <span class="nf">star</span>
+    <span class="s1">'*'</span>
+  <span class="k">end</span>
 
-  def stars
-    star * 5
-  end
-end
+  <span class="k">def</span> <span class="nf">stars</span>
+    <span class="n">star</span> <span class="o">*</span> <span class="mi">5</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-view = MyView.compile("{{planet}} (rating: {{stars}})")
-view.render
-</code></pre>
+<span class="n">view</span> <span class="o">=</span> <span class="no">MyView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">"{{planet}} (rating: {{stars}})"</span><span class="p">)</span>
+<span class="n">view</span><span class="o">.</span><span class="n">render</span>
+</pre></div>
 
 <p>Result:</p>
 
@@ -91,36 +92,36 @@ view.render
 
 <p>In order make use of Tache's safe views, you simply use <code>Tache::Safe</code> instead:</p>
 
-<pre><code>require 'tache/safe'
+<div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s1">'tache/safe'</span>
 
-Tache::Safe.render('Hello {{planet}}', 'planet' =&gt; 'World')
-=&gt; "Hello World"
-</code></pre>
+<span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">'Hello {{planet}}'</span><span class="p">,</span> <span class="s1">'planet'</span> <span class="o">=&gt;</span> <span class="s1">'World'</span><span class="p">)</span>
+<span class="o">=&gt;</span> <span class="s2">"Hello World"</span>
+</pre></div>
 
 <p>The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via safe view methods will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:</p>
 
-<pre><code>Tache::Safe.render('Hello {{planet.inspect}}', 'planet' =&gt; 'World')
-=&gt; "Hello "
-</code></pre>
+<div class="highlight highlight-ruby"><pre><span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">'Hello {{planet.inspect}}'</span><span class="p">,</span> <span class="s1">'planet'</span> <span class="o">=&gt;</span> <span class="s1">'World'</span><span class="p">)</span>
+<span class="o">=&gt;</span> <span class="s2">"Hello "</span>
+</pre></div>
 
 <p>Another example, this time subclassing <code>Tache::Safe</code>:</p>
 
-<pre><code>class MySafeView &lt; Tache::Safe
-  def thing
-    'World'
-  end
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">MySafeView</span> <span class="o">&lt;</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span>
+  <span class="k">def</span> <span class="nf">thing</span>
+    <span class="s1">'World'</span>
+  <span class="k">end</span>
 
-  def present
-    "I'm here!"
-  end
+  <span class="k">def</span> <span class="nf">present</span>
+    <span class="s2">"I'm here!"</span>
+  <span class="k">end</span>
 
-  def bold
-    lambda do |text|
-      '&lt;b&gt;' + render(text) + '&lt;/b&gt;'
-    end
-  end
-end
-</code></pre>
+  <span class="k">def</span> <span class="nf">bold</span>
+    <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">text</span><span class="o">|</span>
+      <span class="s1">'&lt;b&gt;'</span> <span class="o">+</span> <span class="n">render</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'&lt;/b&gt;'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
 
 <p>Template:</p>
 
@@ -138,9 +139,9 @@ Bold: {{#bold}}{{thing}}{{/bold}}
 
 <p>Render:</p>
 
-<pre><code>view = MySafeView.compile(template)
-view.render
-</code></pre>
+<div class="highlight highlight-ruby"><pre><span class="n">view</span> <span class="o">=</span> <span class="no">MySafeView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="n">view</span><span class="o">.</span><span class="n">render</span>
+</pre></div>
 
 <p>Result:</p>
 
@@ -162,45 +163,45 @@ Bold: &lt;b&gt;World&lt;/b&gt;
 
 <p>Example:</p>
 
-<pre><code>class Product
-  def title
-    'iPhone'
-  end
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">Product</span>
+  <span class="k">def</span> <span class="nf">title</span>
+    <span class="s1">'iPhone'</span>
+  <span class="k">end</span>
 
-  def price
-    399
-  end
+  <span class="k">def</span> <span class="nf">price</span>
+    <span class="mi">399</span>
+  <span class="k">end</span>
 
-  def destroy
-    'Deleted product from database!'
-  end
+  <span class="k">def</span> <span class="nf">destroy</span>
+    <span class="s1">'Deleted product from database!'</span>
+  <span class="k">end</span>
 
-  # Returns product from database
-  def self.first
-    Product.new
-  end
-end
+  <span class="c1"># Returns product from database</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">first</span>
+    <span class="no">Product</span><span class="o">.</span><span class="n">new</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-class ProductView &lt; Tache::Safe
-  def initialize(product)
-    @product = product
-  end
+<span class="k">class</span> <span class="nc">ProductView</span> <span class="o">&lt;</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+    <span class="vi">@product</span> <span class="o">=</span> <span class="n">product</span>
+  <span class="k">end</span>
 
-  def title
-    @product.title
-  end
+  <span class="k">def</span> <span class="nf">title</span>
+    <span class="vi">@product</span><span class="o">.</span><span class="n">title</span>
+  <span class="k">end</span>
 
-  def price
-    "$#{@product.price}"
-  end
-end
+  <span class="k">def</span> <span class="nf">price</span>
+    <span class="s2">"$</span><span class="si">#{</span><span class="vi">@product</span><span class="o">.</span><span class="n">price</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-class CartView &lt; Tache::Safe
-  def product
-    ProductView.new(Product.first)
-  end
-end
-</code></pre>
+<span class="k">class</span> <span class="nc">CartView</span> <span class="o">&lt;</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span>
+  <span class="k">def</span> <span class="nf">product</span>
+    <span class="no">ProductView</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="no">Product</span><span class="o">.</span><span class="n">first</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
 
 <p>Template:</p>
 
@@ -212,9 +213,9 @@ Trying to destroy: {{product.destroy}}
 
 <p>Render:</p>
 
-<pre><code>view = CartView.compile(template)
-view.render
-</code></pre>
+<div class="highlight highlight-ruby"><pre><span class="n">view</span> <span class="o">=</span> <span class="no">CartView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="n">view</span><span class="o">.</span><span class="n">render</span>
+</pre></div>
 
 <p>Result:</p>
 
@@ -231,24 +232,24 @@ Bad luck hacker!
 
 <p>Simply include the <code>Tache::Safe::Auto</code> module and call the <code>tache</code> class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safe view for you behind the scenes:</p>
 
-<pre><code>class Person
-  include Tache::Safe::Auto
+<div class="highlight highlight-ruby"><pre><span class="k">class</span> <span class="nc">Person</span>
+  <span class="kp">include</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span><span class="o">::</span><span class="no">Auto</span>
 
-  tache :name, :occupation
+  <span class="n">tache</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:occupation</span>
 
-  def name
-    'Jamie'
-  end
+  <span class="k">def</span> <span class="nf">name</span>
+    <span class="s1">'Jamie'</span>
+  <span class="k">end</span>
 
-  def occupation
-    'Developer'
-  end
+  <span class="k">def</span> <span class="nf">occupation</span>
+    <span class="s1">'Developer'</span>
+  <span class="k">end</span>
 
-  def age
-    "Don't ask"
-  end
-end
-</code></pre>
+  <span class="k">def</span> <span class="nf">age</span>
+    <span class="s2">"Don't ask"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
 
 <p>Template</p>
 
@@ -261,8 +262,8 @@ Age: {{age}}
 
 <p>Render</p>
 
-<pre><code>Tache::Safe.render(template, { 'person' =&gt; Person.new })
-</code></pre>
+<div class="highlight highlight-ruby"><pre><span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="p">{</span> <span class="s1">'person'</span> <span class="o">=&gt;</span> <span class="no">Person</span><span class="o">.</span><span class="n">new</span> <span class="p">})</span>
+</pre></div>
 
 <p>Result</p>
 
@@ -276,28 +277,28 @@ Age:
 
 <p>Proper documentation on compiled templates and partials coming soon! For now, just see the code (it's pretty straight forward):</p>
 
-<pre><code># Compiled
-compiled = MyView.compile('Hello {{thing}}')
-compiled.render
+<div class="highlight highlight-ruby"><pre><span class="c1"># Compiled</span>
+<span class="n">compiled</span> <span class="o">=</span> <span class="no">MyView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">'Hello {{thing}}'</span><span class="p">)</span>
+<span class="n">compiled</span><span class="o">.</span><span class="n">render</span>
 
-# Partials
-Tache::Safe.render('Hello {{&gt;partial}}', { 'a' =&gt; 'b' }, { 'partial' =&gt; 'World' })
+<span class="c1"># Partials</span>
+<span class="ss">Tache</span><span class="p">:</span><span class="ss">:Safe</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">'Hello {{&gt;partial}}'</span><span class="p">,</span> <span class="p">{</span> <span class="s1">'a'</span> <span class="o">=&gt;</span> <span class="s1">'b'</span> <span class="p">},</span> <span class="p">{</span> <span class="s1">'partial'</span> <span class="o">=&gt;</span> <span class="s1">'World'</span> <span class="p">})</span>
 
-# Both
-compiled = MyView.compile('Hello {{&gt;partial}}')
-compiled.partials['partial'] = 'World
-compiled.render
-</code></pre>
+<span class="c1"># Both</span>
+<span class="n">compiled</span> <span class="o">=</span> <span class="no">MyView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">'Hello {{&gt;partial}}'</span><span class="p">)</span>
+<span class="n">compiled</span><span class="o">.</span><span class="n">partials</span><span class="o">[</span><span class="s1">'partial'</span><span class="o">]</span> <span class="o">=</span> <span class="err">'</span><span class="no">World</span>
+<span class="n">compiled</span><span class="o">.</span><span class="n">render</span>
+</pre></div>
 
 <p>You can even precompile a punch of partials (they'll get compiled for you automatically anyway but handy to know):</p>
 
-<pre><code>compiled = MyView.compile('Hello {{&gt;partial1}}, {{&gt;partial2}}')
-compiled.partials = { 
-  'partial1' =&gt; Tache::Template.compile('{{a.b.c}}'),
-  'partial2' =&gt; Tache::Template.compile('{{a.b.c.d}}')
-}
-compiled.render
-</code></pre>
+<div class="highlight highlight-ruby"><pre><span class="n">compiled</span> <span class="o">=</span> <span class="no">MyView</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">'Hello {{&gt;partial1}}, {{&gt;partial2}}'</span><span class="p">)</span>
+<span class="n">compiled</span><span class="o">.</span><span class="n">partials</span> <span class="o">=</span> <span class="p">{</span> 
+  <span class="s1">'partial1'</span> <span class="o">=&gt;</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Template</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">'{{a.b.c}}'</span><span class="p">),</span>
+  <span class="s1">'partial2'</span> <span class="o">=&gt;</span> <span class="ss">Tache</span><span class="p">:</span><span class="ss">:Template</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">'{{a.b.c.d}}'</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">compiled</span><span class="o">.</span><span class="n">render</span>
+</pre></div>
 
 <h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
