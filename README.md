@@ -249,7 +249,7 @@ Tache::Safe.render('Hello {{>partial}}', { 'a' => 'b' }, { 'partial' => 'World' 
 
 # Both
 compiled = MyView.compile('Hello {{>partial}}')
-compiled.partials['partial'] = 'World
+compiled.partials['partial'] = 'World'
 compiled.render
 ```
     
