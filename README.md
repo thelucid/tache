@@ -15,31 +15,36 @@ Tache's safe views are an opt-in feature, so Tache will behave just as you'd exp
 
 Quick example:
 
-    require 'tache'
-    
-    Tache.render('Hello {{planet}}', 'planet' => 'World')
-    => "Hello World"
+```ruby
+require 'tache'
+
+Tache.render('Hello {{planet}}', 'planet' => 'World')
+
+=> "Hello World"
+```
 
 Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a general requirement of Tache, regardless of whether or not you are using safe views.
 
 Here's another way of doing things (no real departure from standard Mustache):
 
-    class MyView < Tache
-      def planet
-        'World'
-      end
-      
-      def star
-        '*'
-      end
-      
-      def stars
-        star * 5
-      end
-    end
-    
-    view = MyView.compile("{{planet}} (rating: {{stars}})")
-    view.render
+```ruby
+class MyView < Tache
+  def planet
+    'World'
+  end
+  
+  def star
+    '*'
+  end
+  
+  def stars
+    star * 5
+  end
+end
+
+view = MyView.compile("{{planet}} (rating: {{stars}})")
+view.render
+```
     
 Result:
 
@@ -49,33 +54,39 @@ Result:
 
 In order make use of Tache's safe views, you simply use `Tache::Safe` instead:
 
-    require 'tache/safe'
-    
-    Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
-    => "Hello World"
+```ruby
+require 'tache/safe'
+
+Tache::Safe.render('Hello {{planet}}', 'planet' => 'World')
+=> "Hello World"
+```
     
 The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via safe view methods will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:
 
-    Tache::Safe.render('Hello {{planet.inspect}}', 'planet' => 'World')
-    => "Hello "
+```ruby
+Tache::Safe.render('Hello {{planet.inspect}}', 'planet' => 'World')
+=> "Hello "
+```
 
 Another example, this time subclassing `Tache::Safe`:
 
-    class MySafeView < Tache::Safe
-      def thing
-        'World'
-      end
-  
-      def present
-        "I'm here!"
-      end
-  
-      def bold
-        lambda do |text|
-          '<b>' + render(text) + '</b>'
-        end
-      end
+```ruby
+class MySafeView < Tache::Safe
+  def thing
+    'World'
+  end
+
+  def present
+    "I'm here!"
+  end
+
+  def bold
+    lambda do |text|
+      '<b>' + render(text) + '</b>'
     end
+  end
+end
+```
 
 Template:
 
@@ -92,8 +103,10 @@ Template:
 
 Render:
 
-    view = MySafeView.compile(template)
-    view.render
+```ruby
+view = MySafeView.compile(template)
+view.render
+```
    
 Result:
 
@@ -114,44 +127,46 @@ So, what if we want to expose something other than hash values or view object me
 
 Example:
 
-    class Product
-      def title
-        'iPhone'
-      end
-  
-      def price
-        399
-      end
-  
-      def destroy
-        'Deleted product from database!'
-      end
-  
-      # Returns product from database
-      def self.first
-        Product.new
-      end
-    end
+```ruby
+class Product
+  def title
+    'iPhone'
+  end
 
-    class ProductView < Tache::Safe
-      def initialize(product)
-        @product = product
-      end
-  
-      def title
-        @product.title
-      end
-  
-      def price
-        "$#{@product.price}"
-      end
-    end
+  def price
+    399
+  end
 
-    class CartView < Tache::Safe
-      def product
-        ProductView.new(Product.first)
-      end
-    end
+  def destroy
+    'Deleted product from database!'
+  end
+
+  # Returns product from database
+  def self.first
+    Product.new
+  end
+end
+
+class ProductView < Tache::Safe
+  def initialize(product)
+    @product = product
+  end
+
+  def title
+    @product.title
+  end
+
+  def price
+    "$#{@product.price}"
+  end
+end
+
+class CartView < Tache::Safe
+  def product
+    ProductView.new(Product.first)
+  end
+end
+```
 
 Template:
 
@@ -162,8 +177,10 @@ Template:
 
 Render:
 
-    view = CartView.compile(template)
-    view.render
+```ruby
+view = CartView.compile(template)
+view.render
+```
 
 Result:
 
@@ -178,23 +195,25 @@ It can become monotonous having to create a safe view class for any object you w
 
 Simply include the `Tache::Safe::Auto` module and call the `tache` class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safe view for you behind the scenes:
 
-    class Person
-      include Tache::Safe::Auto
-    
-      tache :name, :occupation
-      
-      def name
-        'Jamie'
-      end
-      
-      def occupation
-        'Developer'
-      end
-      
-      def age
-        "Don't ask"
-      end
-    end
+```ruby
+class Person
+  include Tache::Safe::Auto
+
+  tache :name, :occupation
+  
+  def name
+    'Jamie'
+  end
+  
+  def occupation
+    'Developer'
+  end
+  
+  def age
+    "Don't ask"
+  end
+end
+```
     
 Template
 
@@ -205,8 +224,10 @@ Template
     {{/person}}
     
 Render
-    
-    Tache::Safe.render(template, { 'person' => Person.new })
+  
+```ruby
+Tache::Safe.render(template, { 'person' => Person.new })
+```
     
 Result
     
@@ -218,26 +239,30 @@ Result
 
 Proper documentation on compiled templates and partials coming soon! For now, just see the code (it's pretty straight forward):
 
-    # Compiled
-    compiled = MyView.compile('Hello {{thing}}')
-    compiled.render
-    
-    # Partials
-    Tache::Safe.render('Hello {{>partial}}', { 'a' => 'b' }, { 'partial' => 'World' })
-    
-    # Both
-    compiled = MyView.compile('Hello {{>partial}}')
-    compiled.partials['partial'] = 'World
-    compiled.render
+```ruby
+# Compiled
+compiled = MyView.compile('Hello {{thing}}')
+compiled.render
+
+# Partials
+Tache::Safe.render('Hello {{>partial}}', { 'a' => 'b' }, { 'partial' => 'World' })
+
+# Both
+compiled = MyView.compile('Hello {{>partial}}')
+compiled.partials['partial'] = 'World
+compiled.render
+```
     
 You can even precompile a punch of partials (they'll get compiled for you automatically anyway but handy to know):
 
-    compiled = MyView.compile('Hello {{>partial1}}, {{>partial2}}')
-    compiled.partials = { 
-      'partial1' => Tache::Template.compile('{{a.b.c}}'),
-      'partial2' => Tache::Template.compile('{{a.b.c.d}}')
-    }
-    compiled.render
+```ruby
+compiled = MyView.compile('Hello {{>partial1}}, {{>partial2}}')
+compiled.partials = { 
+  'partial1' => Tache::Template.compile('{{a.b.c}}'),
+  'partial2' => Tache::Template.compile('{{a.b.c.d}}')
+}
+compiled.render
+```
 
 ## Installation
 
