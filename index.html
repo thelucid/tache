@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Tache by thelucid</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Tache</h1>
+        <p class="header">Full spec-compliant Mustache implementation with 'safe views' for end user applications.</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/thelucid/tache/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/thelucid/tache/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/thelucid/tache">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/thelucid">thelucid</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="tache" class="anchor" href="#tache"><span class="octicon octicon-link"></span></a>Tache</h1>
+
+<h2>
+<a name="full-mustache-implementation-plus-safe-views" class="anchor" href="#full-mustache-implementation-plus-safe-views"><span class="octicon octicon-link"></span></a>Full Mustache implementation plus 'safe views'.</h2>
+
+<p>Tache is a <strong>full spec-compliant <a href="http://mustache.github.com/">Mustache</a> implementation</strong> with the <em>addition</em> of 'safe views'.</p>
+
+<p>Safe views allow Tache templates to be edited by end users, without the risk jeopardising your application's security. When using safe views, only explicitly allowed methods are ever invoked and therefore calls to potentially destructive methods such as 'eval' or 'destroy' are ignored.</p>
+
+<h4>
+<a name="now-with-rubymotion-support" class="anchor" href="#now-with-rubymotion-support"><span class="octicon octicon-link"></span></a>Now with RubyMotion support.</h4>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Tache's safe views are an opt-in feature, so Tache will behave just as you'd expect a standard Mustache implementation to behave, unless <em>you</em> say otherwise.</p>
+
+<h3>
+<a name="standard-views" class="anchor" href="#standard-views"><span class="octicon octicon-link"></span></a>Standard Views</h3>
+
+<p>Quick example:</p>
+
+<pre><code>require 'tache'
+
+Tache.render('Hello {{planet}}', 'planet' =&gt; 'World')
+=&gt; "Hello World"
+</code></pre>
+
+<p>Please note that all hash keys must be defined as strings when working with any Tache view. This minimises the risk of memory leaks caused by symbols when used in an end-user environment and is therefore a general requirement of Tache, regardless of whether or not you are using safe views.</p>
+
+<p>Here's another way of doing things (no real departure from standard Mustache):</p>
+
+<pre><code>class MyView &lt; Tache
+  def planet
+    'World'
+  end
+
+  def star
+    '*'
+  end
+
+  def stars
+    star * 5
+  end
+end
+
+view = MyView.compile("{{planet}} (rating: {{stars}})")
+view.render
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code>World (rating: *****)
+</code></pre>
+
+<h3>
+<a name="safe-views" class="anchor" href="#safe-views"><span class="octicon octicon-link"></span></a>Safe Views</h3>
+
+<p>In order make use of Tache's safe views, you simply use <code>Tache::Safe</code> instead:</p>
+
+<pre><code>require 'tache/safe'
+
+Tache::Safe.render('Hello {{planet}}', 'planet' =&gt; 'World')
+=&gt; "Hello World"
+</code></pre>
+
+<p>The first thing you will notice about safe views (other than them looking a lot like unsafe views), is that only values that have been explicitly exposed via safe view methods will be invoked. Therefore anything that has not been explicitly exposed will not be invoked or output to the rendered template:</p>
+
+<pre><code>Tache::Safe.render('Hello {{planet.inspect}}', 'planet' =&gt; 'World')
+=&gt; "Hello "
+</code></pre>
+
+<p>Another example, this time subclassing <code>Tache::Safe</code>:</p>
+
+<pre><code>class MySafeView &lt; Tache::Safe
+  def thing
+    'World'
+  end
+
+  def present
+    "I'm here!"
+  end
+
+  def bold
+    lambda do |text|
+      '&lt;b&gt;' + render(text) + '&lt;/b&gt;'
+    end
+  end
+end
+</code></pre>
+
+<p>Template:</p>
+
+<pre><code>Hello {{thing}}, here's safe view in action:
+
+self            -&gt; {{.}}
+inspect         -&gt; {{inspect}}
+to_sym          -&gt; {{to_sym}}
+thing           -&gt; {{thing}}
+present         -&gt; {{present}}
+present.upcase  -&gt; {{present.upcase}}
+
+Bold: {{#bold}}{{thing}}{{/bold}}
+</code></pre>
+
+<p>Render:</p>
+
+<pre><code>view = MySafeView.compile(template)
+view.render
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code>Hello World, here's safe view in action:
+
+self            -&gt; 
+inspect         -&gt; 
+to_sym          -&gt; 
+thing           -&gt; World
+present         -&gt; I'm here!
+present.upcase  -&gt; 
+
+Bold: &lt;b&gt;World&lt;/b&gt;
+</code></pre>
+
+<p>Notice how lambda's still work just as you'd expect but only explicitly exposed values are in the rendered output.</p>
+
+<p>So, what if we want to expose something other than hash values or view object methods to our templates? Just subclass <code>Tache::Safe</code> and you're good to go, it's turtles all the way down:</p>
+
+<p>Example:</p>
+
+<pre><code>class Product
+  def title
+    'iPhone'
+  end
+
+  def price
+    399
+  end
+
+  def destroy
+    'Deleted product from database!'
+  end
+
+  # Returns product from database
+  def self.first
+    Product.new
+  end
+end
+
+class ProductView &lt; Tache::Safe
+  def initialize(product)
+    @product = product
+  end
+
+  def title
+    @product.title
+  end
+
+  def price
+    "$#{@product.price}"
+  end
+end
+
+class CartView &lt; Tache::Safe
+  def product
+    ProductView.new(Product.first)
+  end
+end
+</code></pre>
+
+<p>Template:</p>
+
+<pre><code>Product price: {{product.price}}
+Trying to destroy: {{product.destroy}}
+
+{{^destroy}}Bad luck hacker!{{/destroy}}
+</code></pre>
+
+<p>Render:</p>
+
+<pre><code>view = CartView.compile(template)
+view.render
+</code></pre>
+
+<p>Result:</p>
+
+<pre><code>Product price: $399
+Trying to destroy: 
+
+Bad luck hacker!
+</code></pre>
+
+<h3>
+<a name="safe-view-shortcut" class="anchor" href="#safe-view-shortcut"><span class="octicon octicon-link"></span></a>Safe view shortcut</h3>
+
+<p>It can become monotonous having to create a safe view class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating safe views from existing objects.</p>
+
+<p>Simply include the <code>Tache::Safe::Auto</code> module and call the <code>tache</code> class method, supplying it with a list of methods you would like to be available in your templates and Tache will dynamically create a safe view for you behind the scenes:</p>
+
+<pre><code>class Person
+  include Tache::Safe::Auto
+
+  tache :name, :occupation
+
+  def name
+    'Jamie'
+  end
+
+  def occupation
+    'Developer'
+  end
+
+  def age
+    "Don't ask"
+  end
+end
+</code></pre>
+
+<p>Template</p>
+
+<pre><code>{{#person}}
+Name: {{name}}
+Occupation: {{occupation}}
+Age: {{age}}
+{{/person}}
+</code></pre>
+
+<p>Render</p>
+
+<pre><code>Tache::Safe.render(template, { 'person' =&gt; Person.new })
+</code></pre>
+
+<p>Result</p>
+
+<pre><code>Name: Jamie
+Occupation: Developer
+Age: 
+</code></pre>
+
+<h3>
+<a name="compiled-templates-and-partials" class="anchor" href="#compiled-templates-and-partials"><span class="octicon octicon-link"></span></a>Compiled templates and partials</h3>
+
+<p>Proper documentation on compiled templates and partials coming soon! For now, just see the code (it's pretty straight forward):</p>
+
+<pre><code># Compiled
+compiled = MyView.compile('Hello {{thing}}')
+compiled.render
+
+# Partials
+Tache::Safe.render('Hello {{&gt;partial}}', { 'a' =&gt; 'b' }, { 'partial' =&gt; 'World' })
+
+# Both
+compiled = MyView.compile('Hello {{&gt;partial}}')
+compiled.partials['partial'] = 'World
+compiled.render
+</code></pre>
+
+<p>You can even precompile a punch of partials (they'll get compiled for you automatically anyway but handy to know):</p>
+
+<pre><code>compiled = MyView.compile('Hello {{&gt;partial1}}, {{&gt;partial2}}')
+compiled.partials = { 
+  'partial1' =&gt; Tache::Template.compile('{{a.b.c}}'),
+  'partial2' =&gt; Tache::Template.compile('{{a.b.c.d}}')
+}
+compiled.render
+</code></pre>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<pre><code>gem 'tache'
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre><code>$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre><code>$ gem install tache
+</code></pre>
+
+<p>Note: Tache requires at least Ruby 1.9.</p>
+
+<h3>
+<a name="rubymotion" class="anchor" href="#rubymotion"><span class="octicon octicon-link"></span></a>RubyMotion</h3>
+
+<p>As above, then just require it in your Rakefile:</p>
+
+<pre><code>require 'tache'
+</code></pre>
+
+<h2>
+<a name="testing" class="anchor" href="#testing"><span class="octicon octicon-link"></span></a>Testing</h2>
+
+<p>Tests are written with Test::Unit and can be run with Guard:</p>
+
+<pre><code>bundle
+bundle exec guard   
+</code></pre>
+
+<h2>
+<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>Acknowledgements</h2>
+
+<p>Thanks to <a href="https://github.com/defunkt">Chris Wanstrath</a> for the original Ruby implementation and <a href="https://github.com/janl">Jan Lehnardt</a> for his JavaScript port (I took a great deal of inspiration, understanding and tests from this version).</p>
+
+<p>Thanks also to the guys at <a href="https://github.com/Shopify">Shopify</a> for their <code>Liquid::Drop</code> inspiration and <a href="https://github.com/groue">Gwendal Roué</a> for putting up with my brainstorming on GitHub.</p>
+
+<h2>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Add some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
