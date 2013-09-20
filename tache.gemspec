@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Jamie Hill"]
   gem.email         = ["jamie@thelucid.com"]
   gem.description   = %q{Full Mustache implementation plus 'safe views'.}
-  gem.summary       = %q{Tache is a full spec-compliant Mustache implementation** with the addition of 'safe views'.}
+  gem.summary       = %q{Tache is a fully spec-compliant Mustache implementation with the addition of 'safe views' for end user applications.}
   gem.homepage      = "https://github.com/thelucid/tache"
 
   gem.files         = `git ls-files`.split($/)
