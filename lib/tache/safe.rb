@@ -71,10 +71,10 @@ class Tache::Safe < Tache
       return object.to_tache if object.respond_to?(:to_tache)
       
       case object
-      when String, Array, Hash, Numeric, Time, TrueClass, FalseClass, NilClass
+      when String, Array, Hash, Numeric, Time, TrueClass, FalseClass, NilClass, Enumerable
         object
       else
-        raise 'Unsafe object type when using Tache::Safe'
+        raise "Unsafe object type: #{object.inspect}"
       end
     end
   end
