@@ -56,12 +56,14 @@ class Tache::Safe < Tache
     end
     
     def resolve(view, key)
-      if view.respond_to?(:has_key?) && view.has_key?(key)
-        value = view[key]
-        return value if value == :_missing 
-        view.is_a?(Tache::Safe) && value.respond_to?(:call) ? value : tacheify(value)
-      else
-        :_missing
+      scoped(view) do
+        if view.respond_to?(:has_key?) && view.has_key?(key)
+          value = view[key]
+          return value if value == :_missing 
+          view.is_a?(Tache::Safe) && value.respond_to?(:call) ? value : tacheify(value)
+        else
+          :_missing
+        end
       end
     end
     

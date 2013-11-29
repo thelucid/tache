@@ -58,14 +58,20 @@ class Tache::Context
   
   def resolve(view, key)
     hash = view.respond_to?(:has_key?)
-
-    if hash && view.has_key?(key)
-      view[key]
-    elsif !hash && view.respond_to?(key)
-      view.method(key).call
-    else
-      :_missing
+      
+    scoped(view) do
+      if hash && view.has_key?(key)
+        view[key]
+      elsif !hash && view.respond_to?(key)
+        view.method(key).call
+      else
+        :_missing
+      end
     end
+  end
+  
+  def scoped(view, &block)
+    view.is_a?(Tache) ? view.scope(self, &block) : block.call
   end
   
   def self.make(view)

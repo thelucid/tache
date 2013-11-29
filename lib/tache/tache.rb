@@ -29,6 +29,17 @@ class Tache
     string.gsub(/[&\"<>]/, ENTITIES)
   end
   
+  # TODO: Further testing. Used when retireving values in the context class,
+  # ensuring that any Tache instances have the current context when retrieving
+  # their values. This way, view methods have access to the current context.
+  def scope(context, &block)
+    @prev_context = @context
+    @context = context
+    block.call
+  ensure
+    @context = @prev_context
+  end
+  
   def self.compile(source)
     new.compile(source)
   end

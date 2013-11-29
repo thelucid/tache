@@ -67,10 +67,16 @@ class Tache::Template
   end
   
   def resolve(context, value, indent, newline, escape)
+    original = value
     value = value.to_tache_value if value.respond_to?(:to_tache_value)
     
     if value.is_a?(Tache::Template)
-      value.render(context, indent)
+      # FIXME: We're forcing a new context here when rendering the template,
+      # however we will already be in a new context when this resolve call is
+      # coming from the enumeration condition below. Only need to force context
+      # when we're not in an enumeration?? Hrm, give it some thought. Should be
+      # able to just check context.view to see if it matches original.
+      context.push(original) { |child| value.render(child, indent) }
     elsif value.respond_to?(:each)
       return '' unless value.count > 0
       last = value.last
