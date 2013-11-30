@@ -41,11 +41,11 @@ class Tache::Context
   end
 
   def escape(str)
-    parent ? parent.escape(str) : view.escape(str)
+    view.is_a?(Tache) ? view.escape(str) : parent.escape(str)
   end
 
   def partial(name)
-    parent ? parent.partial(name) : view.partials[name]
+    view.is_a?(Tache) && view.partials[name] || parent.partial(name)
   end
 
   private
