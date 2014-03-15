@@ -95,7 +95,12 @@ class Tache::Template
   end
   
   def interpolate(source, context, tags = nil)
-    self.class.new(source.to_s, tags: tags).render(context.dup)
+    if source.is_a?(Tache::Template)
+      # TODO: Refactor.
+      source
+    else
+      self.class.new(source.to_s, tags: tags)
+    end.render(context.dup)
   end
   
   # Based on JavaScript implementation

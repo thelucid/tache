@@ -2,7 +2,15 @@ require File.expand_path('../helper', __FILE__)
 
 class TemplateTest < Test::Unit::TestCase
   def setup
-    @tache_klass = Class.new(Tache) { def thing; 'World'; end }
+    @tache_klass = Class.new(Tache) do
+      def thing
+        'World'
+      end
+      
+      def lambda_thing
+        proc { Tache::Template.new("*{{thing}}*") }
+      end
+    end
   end
   
   test 'can compile' do
@@ -32,5 +40,12 @@ class TemplateTest < Test::Unit::TestCase
     template = Tache::Template.new('Hello <%thing%>', :tags => %w(<% %>))    
     
     assert_equal 'Hello World', template.render(Tache::Context.make(@tache_klass.new))
+  end
+  
+  test "can return template from lambda" do
+    template = Tache::Template.new('Hello {{lambda_thing}}')    
+    template.compile
+    
+    assert_equal 'Hello *World*', template.render(Tache::Context.make(@tache_klass.new))
   end
 end
