@@ -79,14 +79,16 @@ class Tache::Template
       context.push(original) { |child| value.render(child, indent) }
     elsif value.respond_to?(:each)
       return '' unless value.count > 0
-      last = value.last
-      last = last.to_tache_value if last.respond_to?(:to_tache_value)
-      after = last.is_a?(Tache::Template) ? '' : newline
-      value.inject('') do |memo, item|
+
+      last = nil
+      value = value.inject('') do |memo, item|
         context.push(item) { |child| memo << resolve(child, item, indent, '', escape) }
-        indent = '' unless memo =~ /\n$/
+        indent = '' unless memo.end_with?("\n")
+        last = item
         memo
-      end << after
+      end
+      last = last.to_tache_value if last.respond_to?(:to_tache_value)
+      last.is_a?(Tache::Template) ? value : value << newline
     else
       value = value.is_a?(Proc) ? interpolate(value.call, context) : value.to_s
       value = indent + value + newline
