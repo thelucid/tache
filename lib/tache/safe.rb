@@ -44,7 +44,7 @@ class Tache::Safe < Tache
   private
   
   # Must happen after method definitions.
-  GUARDED = public_instance_methods.map(&:to_s)
+  GUARDED = public_instance_methods.map(&:to_s).to_set
   
   def allowed_method?(key)
     !GUARDED.include?(key) && self.class.public_method_defined?(key)
