@@ -50,7 +50,7 @@ class Tache::Safe < Tache
       methods.to_set
     else
       # Note: RubyMotion doesn't do sets so using hash.
-      methods.inject({}) { |hash, key| hash[key] = true }
+      methods.inject({}) { |hash, key| hash[key] = true; hash }
     end
   end
   
