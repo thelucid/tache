@@ -71,7 +71,7 @@ class Tache::Context
   end
   
   def scoped(view, &block)
-    view.is_a?(Tache) ? view.scope(self, &block) : block.call
+    view.is_a?(Tache) ? view.scope(self, &block) : yield
   end
   
   def self.make(view)

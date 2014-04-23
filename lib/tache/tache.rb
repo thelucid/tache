@@ -32,10 +32,10 @@ class Tache
   # TODO: Further testing. Used when retireving values in the context class,
   # ensuring that any Tache instances have the current context when retrieving
   # their values. This way, view methods have access to the current context.
-  def scope(context, &block)
+  def scope(context)
     @prev_context = @context
     @context = context
-    block.call
+    yield
   ensure
     @context = @prev_context
   end
