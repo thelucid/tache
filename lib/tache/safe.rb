@@ -44,7 +44,15 @@ class Tache::Safe < Tache
   private
   
   # Must happen after method definitions.
-  GUARDED = public_instance_methods.map(&:to_s).to_set
+  GUARDED = begin
+    methods = public_instance_methods.map(&:to_s)
+    if methods.respond_to?(:to_set)
+      methods.to_set
+    else
+      # Note: RubyMotion doesn't do sets so using hash.
+      methods.inject({}) { |hash, key| hash[key] = true }
+    end
+  end
   
   def allowed_method?(key)
     !GUARDED.include?(key) && self.class.public_method_defined?(key)
