@@ -22,14 +22,23 @@ class Tache::Context
         value = @view
       else
         context = self
-        while context
-          value = name.split('.').inject(context.view) do |view, key|
+        segments = name.split('.')
+        
+        if segments.first == ('this')
+          value = segments[1..-1].inject(context.view) do |view, key|
             break unless view
             resolve(view, key)
-          end          
+          end 
+        else          
+          while context
+            value = segments.inject(context.view) do |view, key|
+              break unless view
+              resolve(view, key)
+            end          
 
-          break unless value == :_missing
-          context = context.parent
+            break unless value == :_missing
+            context = context.parent
+          end
         end
       end
       

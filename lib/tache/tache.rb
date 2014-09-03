@@ -24,8 +24,7 @@ class Tache
   end
   
   def escape(string)
-    # TODO: When RubyMotion gets CGI support, just do:
-    #   CGI.escapeHTML(string)
+    # TODO: When RubyMotion gets CGI support, just do: CGI.escapeHTML(string)
     string.gsub(/[&\"<>]/, ENTITIES)
   end
   

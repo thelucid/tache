@@ -26,6 +26,18 @@ class ContextTest < Test::Unit::TestCase
       assert_equal 'child', child['name']
     end
   end
+  
+  test 'child can lookup properties of own view via this' do
+    @parent.push(@child_view) do |child|
+      assert_equal 'child', child['this.name']
+    end
+  end
+  
+  test "this shouldn't bubble" do
+    @parent.push(@child_view) do |child|
+      assert_equal nil, child['this.a']
+    end
+  end
 
   test 'child can lookup properties of the parent context view' do
     @parent.push(@child_view) do |child|
