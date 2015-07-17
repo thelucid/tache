@@ -28,3 +28,15 @@ Shortcut collection strings:
   <p>
     Just a string, And another
   </p>
+
+Collection of templates:
+  <ul>
+    <li>First: Default OK</li>
+    <li>Second: Default OK</li>
+  </ul>
+
+Shortcut collection of templates:
+  <ul>
+    <li>First: Default OK</li>
+    <li>Second: Default OK</li>
+  </ul>

@@ -1,5 +1,5 @@
 # TODO: This means that subclasses have to override has_key? if they want to
-# support key_missing. The other option is to return :_missing from
+# support key_missing. The other option is to return :missing from
 # key_missing by default and stipulate that subclasses must call super if
 # they can't find the key, that does however mean a couple of extra method
 # calls, one to [] and one to key_missing, even if key not supported. Is
@@ -18,7 +18,7 @@
 
 class Tache::Safe < Tache
   def context
-    @context ||= Context.make(self)
+    @context ||= Context.new(self)
   end
 
   def has_key?(key)
@@ -67,10 +67,10 @@ class Tache::Safe < Tache
       scoped(view) do
         if view.respond_to?(:has_key?) && view.has_key?(key)
           value = view[key]
-          return value if value == :_missing 
+          return value if value == :missing 
           view.is_a?(Tache::Safe) && value.respond_to?(:call) ? value : tacheify(value)
         else
-          :_missing
+          :missing
         end
       end
     end

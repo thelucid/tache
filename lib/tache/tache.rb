@@ -2,15 +2,15 @@ class Tache
   ENTITIES = { '&' => '&amp;', '"' => '&quot;', '<' => '&lt;', '>' => '&gt;' }
   
   def compile(source, options = {})
-    @compiled = Template.new(source, options).compile
+    @template = Template.new(source, options).compile
     self
   end
   
   def render(source_or_view = nil)
     case source_or_view
-      when String then Template.new(source_or_view).render(context)
-      when nil then @compiled.render(context)
-      else context.push(source_or_view) { |child| @compiled.render(child) }
+      when String then compile(source_or_view).render
+      when nil then @template.render(context)
+      else context.push(source_or_view) { |child| @template.render(child) }
     end
   end
   
@@ -24,7 +24,7 @@ class Tache
   end
   
   def escape(string)
-    # TODO: When RubyMotion gets CGI support, just do: CGI.escapeHTML(string)
+    # RubyMotion doesn't have CGI class, i.e. CGI.escapeHTML(string)
     string.gsub(/[&\"<>]/, ENTITIES)
   end
   
@@ -52,11 +52,10 @@ class Tache
   private
   
   def context
-    @context ||= Context.make(self)
+    @context ||= Context.new(self)
   end
   
   class PartialCollection < Hash
-    # TODO: Lazy compiling reader vs. compiling on write?
     def []=(key, value)
       super key, value.is_a?(Template) ? value : Template.new(value)
     end

@@ -42,7 +42,8 @@ class Tache::Template
           context.push(value) do |child|
             buffer << render_tokens(token[2], child)
           end unless falsy?(value)
-        else # It must respond to each
+        else
+          # It must respond to each
           value.each do |item|
             context.push(item) { |child| buffer << render_tokens(token[2], child) }
           end

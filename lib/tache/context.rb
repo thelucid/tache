@@ -3,7 +3,7 @@ class Tache::Context
   
   def initialize(view, parent = nil)
     @view, @parent = view, parent
-    @cache = {}
+    @cache = { '.' => view }
   end
   
   def push(view)
@@ -14,39 +14,30 @@ class Tache::Context
   
   def [](name)
     return @child[name] if @child
-    
-    value = @cache[name]
-    
-    unless value
-      if name == '.'
-        value = @view
-      else
-        context = self
-        segments = name.split('.')
-        
-        if segments.first == ('this')
-          value = segments[1..-1].inject(context.view) do |view, key|
+
+    @cache[name] ||= begin
+      context = self
+      segments = name.split('.')
+      
+      if segments.first == 'this'
+        value = segments[1..-1].inject(context.view) do |view, key|
+          break unless view
+          resolve(view, key)
+        end 
+      else          
+        while context
+          value = segments.inject(context.view) do |view, key|
             break unless view
             resolve(view, key)
-          end 
-        else          
-          while context
-            value = segments.inject(context.view) do |view, key|
-              break unless view
-              resolve(view, key)
-            end          
+          end          
 
-            break unless value == :_missing
-            context = context.parent
-          end
+          break unless value == :missing
+          context = context.parent
         end
       end
       
-      value = missing(name) if value == :_missing
-      @cache[name] = value
+      value == :missing ? missing(name) : value
     end
-
-    value
   end
 
   def escape(str)
@@ -74,16 +65,12 @@ class Tache::Context
       elsif !hash && view.respond_to?(key)
         view.method(key).call
       else
-        :_missing
+        :missing
       end
     end
   end
   
   def scoped(view, &block)
     view.is_a?(Tache) ? view.scope(self, &block) : yield
-  end
-  
-  def self.make(view)
-    view.is_a?(self) ? view : new(view)
   end
 end

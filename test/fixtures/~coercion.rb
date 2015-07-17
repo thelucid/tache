@@ -23,6 +23,11 @@ class CoercionView < Tache
   def string_items
     ["Just a string, ", "And another"]
   end  
+  
+  def templates
+    [ Tache::Template.new("<li>First: {{ok}}</li>\n"),
+      Tache::Template.new("<li>Second: {{ok}}</li>\n") ]
+  end
 end
 
 CoercionView
