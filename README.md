@@ -189,6 +189,7 @@ Result:
 
     Bad luck hacker!
 
+<!--
 ###Safe view shortcut
 
 It can become monotonous having to create a safe view class for any object you would like to expose to a template, therefore Tache also provides a shortcut for creating safe views from existing objects.
@@ -234,6 +235,7 @@ Result
     Name: Jamie
     Occupation: Developer
     Age: 
+-->
 
 ### Compiled templates and partials
 

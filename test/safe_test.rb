@@ -10,13 +10,13 @@ class SafeTest < Test::Unit::TestCase
       end
     end
     
-    @drop_class = Class.new(Tache::Drop) do
+    @drop_class = Class.new(Tache::Safe) do
       def present
         "I'm here baby!"
       end
     end
     
-    @verbose_drop_class = Class.new(Tache::Drop) do
+    @verbose_drop_class = Class.new(Tache::Safe) do
       def present
         "I'm here baby!"
       end
@@ -34,20 +34,13 @@ class SafeTest < Test::Unit::TestCase
       end
     end
     
-    @person_class = Class.new do
-      include Tache::Safe::Auto
-      tache :name, :occupation
-      
+    @person_class = Class.new(Tache::Safe) do
       def name
         'Jamie'
       end
       
       def occupation
         'Developer'
-      end
-      
-      def age
-        "Don't ask"
       end
     end
   end
@@ -91,10 +84,10 @@ class SafeTest < Test::Unit::TestCase
   test 'can use nested scopes' do    
     view = Tache::Safe.compile( "{{#person}}Name: {{name}}, " <<
                                 "Occupation: {{occupation}}, " <<
-                                "Age: {{age}}, " <<
+                                "Inspect: {{inspect}}, " <<
                                 "Present: {{parent}}{{/person}}" )
                                 
-    assert_equal  "Name: Jamie, Occupation: Developer, Age: , Present: I'm the daddy!",
+    assert_equal  "Name: Jamie, Occupation: Developer, Inspect: , Present: I'm the daddy!",
                   view.render({ 'parent' => "I'm the daddy!", 'person' => @person_class.new })
   end
 end
