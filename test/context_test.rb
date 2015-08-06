@@ -6,11 +6,11 @@ class ContextTest < Test::Unit::TestCase
     @child_view = { 'name' => 'child', 'c' => { 'd' => 'd' } }
   end
   
-  test 'is able to lookup properties of its own view' do
+  test 'can lookup properties of own view' do
     assert_equal @parent['name'], 'parent'
   end
 
-  test 'is able to lookup nested properties of its own view' do
+  test 'can lookup nested properties of own view' do
     assert_equal @parent['a.b'], 'b'
   end
 

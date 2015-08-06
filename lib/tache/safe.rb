@@ -33,10 +33,6 @@ class Tache::Safe < Tache
     nil
   end
   
-  def to_tache
-    self
-  end
-  
   def to_s
     ''
   end
@@ -64,24 +60,22 @@ class Tache::Safe < Tache
     end
     
     def resolve(view, key)
-      scoped(view) do
-        if view.respond_to?(:has_key?) && view.has_key?(key)
-          value = view[key]
-          return value if value == :missing 
-          view.is_a?(Tache::Safe) && value.respond_to?(:call) ? value : tacheify(value)
-        else
-          :missing
-        end
+      if view.respond_to?(:has_key?) && view.has_key?(key)
+        value = view[key]
+        return value if value == :missing 
+        view.is_a?(Tache::Safe) && value.respond_to?(:call) ? value : tacheify(value)
+      else
+        :missing
       end
     end
     
     private
     
     def tacheify(object)
-      return object.to_tache if object.respond_to?(:to_tache)
+      object = object.to_tache if object.respond_to?(:to_tache)
       
       case object
-      when String, Array, Hash, Numeric, Time, TrueClass, FalseClass, NilClass, Enumerable
+      when Tache::Safe, String, Array, Hash, Numeric, Time, TrueClass, FalseClass, NilClass, Enumerable
         object
       else
         raise "Unsafe object type: #{object.inspect}"

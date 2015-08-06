@@ -1,135 +1,188 @@
-# Note: Currently requires MacRuby strscan to be compatible with RubyMotion, it
-# looks like standard lib support is planned for MacRuby so strscan.rb can then
-# be removed from here.
-
 class Tache::Parser  
-  WHITE       = /\s*/
-  TAG         = /#|\^|\/|>|\{|&|=|!/
-  NON_INLINE  = /#|\^|\/|>|=|!/
-  ANY_CONTENT = /!|=/
-  ALLOWED     = /(\w|[\?!\/\.\-])*/
-
-  def parse(source = '', tags = nil)
+  def parse(source, tags = nil)
     return [] if source == ''
+    
     tags ||= ['{{', '}}']
     raise ArgumentError, "Invalid tags: '#{tags.join(', ')}'" unless tags.size == 2
     
-    encoding = source.encoding
-    source = source.dup.force_encoding('BINARY')    
+    state = :text
+    index = 0
+    start = 0
+    finish = 0
+    line = 0
     sections = []
-    tokens = [['line']]
-    scanner = StringScanner.new(source)
-
-    until scanner.eos?
-      open = /([ \t]*)?#{Regexp.escape(tags[0])}/
-      close = /#{Regexp.escape(tags[1])}/
-      text = scanner.scan_until(open)
-
-      if text
-        size = scanner.matched.size
-        text = text[0...-size]
-        scanner.pos -= size
-      else
-        text = scanner.rest
-        scanner.terminate
-      end
-      
-      text.force_encoding(encoding)
+    tokens = [['indent']]
+    left = tags.first
+    right = tags.last
+    type = nil
+    before = nil
+    indent = ''
+    standalone = nil    
+    
+    while char = source[index]
+      case char
+      # Note: left[0] and right[0] could be the same if tags have been changed,
+      # hence the same when condition.
+      when left[0], right[0]
+        case state
+        when :seek
+          if char == '{'
+            start = index + 1
+            state = :pre
+            type = '{'
+          end
+        when :text
+          if source[index, left.size] == left
+            if start == line && source[start...index] =~ /\A([\ \t]*)\Z/
+              indent = $1
+              standalone = true
+            else
+              tokens << ['text', source[start...index]] if index > start
+              indent = ''
+              standalone = false
+            end
             
-      text.lines.each do |line|
-        tokens << ['text', line]
-        tokens << ['line'] if line.end_with?("\n")
-      end
-      tokens.pop if tokens.last && tokens.last[0] == 'line' && scanner.eos?
-
-      newline = scanner.bol?
-      start = scanner.pos
-
-      break unless scanner.skip(open)
-      
-      indent = scanner[1] || ''
-
-      unless newline || indent.empty?
-        last = tokens.last
-        last && last[0] == 'text' ? last[1] << indent : tokens << ['text', indent]
-        start += indent.length
-        indent = ''
-      end
-
-      scanner.skip(WHITE)
-      
-      # It seems that MacRuby's implementation of scan is inconsistent with MRI
-      # so rewritten using peek:
-      #   type = scanner.scan(TAG)
-      peek = scanner.peek(1)
-      if peek =~ TAG
-        type = peek
-        scanner.pos += 1
+            before = index
+            index += left.size - 1
+            start = index + 1
+            state = :seek
+          end
+        when :name, :special, :post
+          if source[index, right.size] == right
+            finish = index if state == :name || state == :special
+            content = source[start...finish]
+           
+            # TODO: Probably a nicer way to handle tripples.
+            if type == '{' && source[index, 1 + right.size] == ('}' + right)
+              index += 1
+              type = '&'
+            end
+            
+            index += right.size - 1
+              
+            tail = ''
+            if standalone
+              carriage = source[index + 1] == "\r"
+              index += 1 if carriage
+              if source[index + 1] == "\n"
+                index += 1
+                line = index + 1
+                tail = carriage ? "\r\n" : "\n"
+              end
+            end
+             
+            case type
+            when 'name', '&'
+              tokens << [type, content, indent, tail]
+            when '#', '^'
+              nested = []
+              tokens << ['text', indent] if !indent.empty? && tail.empty?
+              tokens << [type, content, nested]
+              sections << [content, before, index + 1, tokens]
+              tokens = nested
+            when '/'
+              tokens << ['text', indent] if !indent.empty? && tail.empty? && index + 1 != source.size
+              name, at, pos, tokens = sections.pop
+              error "Closing unopened '#{content}'", source, before unless name
+              error "Unclosed section '#{name}'", source, at if name != content
+              tokens.last << source[pos...before] + indent << tags
+            when '>'
+              tokens << ['>', content, indent]
+            when '!'
+            when '='
+              if content[-1] == '='
+                tags = content[0..-2].strip.split(' ')
+                error "Invalid tags '#{tags.join(', ')}'", source, before unless tags.size == 2
+                left, right = *tags
+              end
+            end
+            
+            start = index + 1
+            state = :text
+            tokens << ['indent'] unless tail.empty? || index + 1 == source.size
+          end
+        end
+      when '#', '^', '/', '&', '>'
+        case state
+        when :seek
+          start = index + 1
+          state = :pre
+          type = char
+        end
+      when '!', '='
+        case state
+        when :seek
+          start = index + 1
+          state = :special
+          type = char
+        end
+      when '{'
+        case state
+        when :seek
+          start = index + 1
+          state = :pre
+          type = '{'
+        end
+      when '}'
+        case state
+        when :name
+          if type == '{'
+            state = :post
+            type = '&'
+            finish = index
+          end
+        end
+      when ' ', "\t"
+        case state
+        when :name
+          state = :post
+          finish = index
+        end
+      when /[\w\?!\/\.\-]/
+        case state
+        when :seek
+          state = :name
+          type = 'name'
+          start = index
+        when :pre
+          state = :name
+          start = index
+        end
+      when "\r"
+      when "\n"
+        case state
+        when :text
+          feed = (source[index - 1] == "\r" ? "\r\n" : "\n")
+          tokens << ['text', source[start..index - feed.size] << feed]
+          tokens << ['indent'] unless index + 1 == source.size
+          start = index + 1
+        end
+        line = index + 1
       else
-        type = nil
+        case state
+        when :seek, :pre, :name, :post
+          # FIXME: This won't happen if character caught above.
+          error "Invalid character in tag name: #{char.inspect}", source, index
+        end
       end
-
-      scanner.skip(WHITE)
-
-      content = if ANY_CONTENT =~ type
-        text = scanner.scan_until(/#{WHITE}#{Regexp.escape(type)}?#{close}/)
-        size = scanner.matched.size
-        scanner.pos -= size
-        text[0...-size]
-      else
-        scanner.scan(ALLOWED)
-      end
-
-      scanner.skip(WHITE)
-      scanner.skip(/\}/) if type == '{'
-      scanner.skip(/\=/) if type == '='
-
-      error "Unclosed tag", source, scanner.pos unless scanner.skip(close)
-
-      tail = ''
-      if newline && scanner.peek(2) =~ /\r?\n/
-        tail = scanner.scan(/\r?\n/) || ''
-      elsif !scanner.eos? && !indent.empty? && NON_INLINE =~ type
-        last = tokens.last
-        last && last[0] == 'text' ? last[1] << indent : tokens << ['text', indent]
-      end
-      
-      case type
-      when '#', '^'
-        nested = []
-        tokens << [type, content, nested]
-        sections << [content, scanner.pos, tokens]
-        tokens = nested
-      when '/'
-        name, pos, tokens, last = sections.pop
-        error "Closing unopened '#{content}'", source, scanner.pos - 2 if name.nil?
-        error "Unclosed section '#{name}'", source, pos if name != content
-        tokens.last << (source[last...(start + indent.length)] + indent) << tags
-      when '='
-        tags = content.split(' ')
-        error "Invalid tags '#{tags.join(', ')}'", source, scanner.pos - 3 unless tags.size == 2
-      when '>'
-        tokens << [type, content, indent]
-      when '!'
-        # Ignore
-      when '{', '&'
-        tokens << ['&', content, indent, tail]
-      else
-        tokens << ['name', content, indent, tail]
-      end
-      
-      tokens << ['line'] unless tail.empty? || scanner.eos?
-      sections.last << scanner.pos unless sections.empty?
+      index += 1
     end
-
+    
     unless sections.empty?
-      name, pos = sections.pop
-      error "Unclosed section '#{name}'", source, pos - 2
+      name, at = sections.pop
+      error "Unclosed section '#{name}'", source, at
     end
-
+    
+    case state
+      when :text
+        tokens << ['text', source[start...index]] if start < index
+      when :name
+        error "Unclosed tag", source, before
+    end
+    
     tokens
   end
-
+  
   private
 
   def error(message, source, position)    
@@ -137,7 +190,7 @@ class Tache::Parser
     size = rest.index("\n")
     rest = rest[0...size] if size
     lines = source[0...position].split("\n")
-    row, column = lines.size, lines.last.size - 1
+    row, column = lines.size, lines.last.size
     raise Tache::SyntaxError.new(message, row, column, lines.last + rest)
   end
 end

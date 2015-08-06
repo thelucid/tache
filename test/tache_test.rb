@@ -26,12 +26,13 @@ class TacheTest < Test::Unit::TestCase
         klass.compile(source)
       end      
       
-      if ruby
+      result = if ruby
         view.partials = { 'partial' => partial } if partial
-        assert_equal txt, view.render
+        view.render
       else
-        assert_equal txt, Tache.render(source, view, partial ? { 'partial' => partial } : {})
+        Tache.render(source, view, partial ? { 'partial' => partial } : {})
       end
+      assert_equal txt, result, "Source: #{source.inspect}\nPartial: #{partial.inspect}"
     end
   end
 end

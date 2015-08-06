@@ -17,6 +17,10 @@ class Tache::Template
     !!@tokens
   end
   
+  def to_str
+    '[template]'
+  end
+  
   private
   
   def tokenize
@@ -59,7 +63,7 @@ class Tache::Template
         buffer << value if value
       when 'text'
         buffer << token_value
-      when 'line'
+      when 'indent'
         buffer << indent
       end
     end
@@ -67,42 +71,41 @@ class Tache::Template
     buffer
   end
   
-  def resolve(context, value, indent, newline, escape)
-    original = value
-    value = value.to_tache_value if value.respond_to?(:to_tache_value)
-    
-    if value.is_a?(Tache::Template)
-      # FIXME: We're forcing a new context here when rendering the template,
-      # however we will already be in a new context when this resolve call is
-      # coming from the enumeration condition below. Only need to force context
-      # when we're not in an enumeration?? Hrm, give it some thought. Should be
-      # able to just check context.view to see if it matches original.
-      context.push(original) { |child| value.render(child, indent) }
+  def resolve(context, value, indent, newline, escape)    
+    if value.is_a?(String)
+      value = indent + value + newline
+      escape ? context.escape(value) : value
+    elsif value.is_a?(Tache::Template)
+      value.render(context, indent)
     elsif value.respond_to?(:each)
       return '' unless value.count > 0
-
       last = nil
       value = value.inject('') do |memo, item|
-        context.push(item) { |child| memo << resolve(child, item, indent, '', escape) }
+        context.push(item) do |child|
+          memo << resolve(child, item, indent, '', escape)
+        end
         indent = '' unless memo.end_with?("\n")
         last = item
         memo
       end
-      last = last.to_tache_value if last.respond_to?(:to_tache_value)
-      last.is_a?(Tache::Template) ? value : value << newline
+      last.is_a?(String) ? value << newline : value
+    elsif value.is_a?(Proc)
+      resolve(context, interpolate(value.call, context), indent, newline, escape)
     else
-      value = value.is_a?(Proc) ? interpolate(value.call, context) : value.to_s
-      value = indent + value + newline
-      escape ? context.escape(value) : value
+      result = value.to_s
+      if result.is_a?(Tache::Template)
+        context.push(value) { |child| result.render(child, indent) }
+      else
+        resolve(context, result, indent, newline, escape)
+      end
     end
   end
   
   def interpolate(source, context, tags = nil)
     if source.is_a?(Tache::Template)
-      # TODO: Refactor.
       source
     else
-      self.class.new(source.to_s, tags: tags)
+      Tache::Template.new(source.to_s, tags: tags)
     end.render(context.dup)
   end
   

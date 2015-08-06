@@ -16,22 +16,19 @@ class Tache::Context
     return @child[name] if @child
 
     @cache[name] ||= begin
-      context = self
       segments = name.split('.')
       
       if segments.first == 'this'
-        value = segments[1..-1].inject(context.view) do |view, key|
-          break unless view
-          resolve(view, key)
-        end 
-      else          
+        value = fetch(self, segments[1..-1])
+      else    
+        context = self
+        hit = false
         while context
-          value = segments.inject(context.view) do |view, key|
-            break unless view
-            resolve(view, key)
-          end          
+          value = fetch(context, segments) do
+            hit = true
+          end
 
-          break unless value == :missing
+          break if hit
           context = context.parent
         end
       end
@@ -45,32 +42,35 @@ class Tache::Context
   end
 
   def partial(name)
-    view.is_a?(Tache) && view.partials[name] || parent.partial(name)
+    view.is_a?(Tache) ? view.partials[name] : parent.partial(name)
   end
 
   private
   
-  # Could provide verbose mode that returns: "[missing: #{name}]"
-  # ...or maybe pass to Tache instance like 'escape' and 'partal'.
+  # Could log errors, maybe pass to Tache instance like 'escape' e.g.
+  #   @errors << "Missing: #{name}"
   def missing(name)
     nil
+  end
+  
+  def fetch(context, segments)
+    segments.inject(context.view) do |view, key|
+      break unless view
+      resolved = resolve(view, key)
+      yield if block_given? && resolved != :missing # && i == (segments.size - 1)
+      resolved
+    end
   end
   
   def resolve(view, key)
     hash = view.respond_to?(:has_key?)
       
-    scoped(view) do
-      if hash && view.has_key?(key)
-        view[key]
-      elsif !hash && view.respond_to?(key)
-        view.method(key).call
-      else
-        :missing
-      end
+    if hash && view.has_key?(key)
+      view[key]
+    elsif !hash && view.respond_to?(key)
+      view.method(key).call
+    else
+      :missing
     end
-  end
-  
-  def scoped(view, &block)
-    view.is_a?(Tache) ? view.scope(self, &block) : yield
   end
 end

@@ -1,5 +1,39 @@
+class SimpleRenderable
+  def initialize(value)
+    @value = value
+  end
+  
+  def to_s
+    @value
+  end
+end
+
+class DefaultTemplateRenderable
+  def initialize(source)
+    @source = source
+  end
+  
+  def to_s
+    Tache::Template.new(@source)
+  end
+end
+
+class OkTemplateRenderable
+  def initialize(source)
+    @source = source
+  end
+  
+  def ok
+    'Yep'
+  end
+  
+  def to_s
+    Tache::Template.new(@source)
+  end
+end
+
 class CoercionView < Tache
-  def to_tache_value
+  def to_s
     "I'm the daddy!"
   end
   
@@ -8,12 +42,12 @@ class CoercionView < Tache
   end
   
   def item
-    OpenStruct.new(to_tache_value: 'The thing')
+    SimpleRenderable.new('The thing')
   end
   
   def items
-    [ OpenStruct.new(to_tache_value: Tache::Template.new("<li>First: {{ok}}</li>\n"), ok: 'Yep'),
-      OpenStruct.new(to_tache_value: Tache::Template.new("<li>Second: {{ok}}</li>\n")) ]
+    [ OkTemplateRenderable.new("<li>First: {{ok}}</li>\n"),
+      DefaultTemplateRenderable.new("<li>Second: {{ok}}</li>\n") ]
   end
   
   def empty_items
@@ -22,11 +56,6 @@ class CoercionView < Tache
   
   def string_items
     ["Just a string, ", "And another"]
-  end  
-  
-  def templates
-    [ Tache::Template.new("<li>First: {{ok}}</li>\n"),
-      Tache::Template.new("<li>Second: {{ok}}</li>\n") ]
   end
 end
 
