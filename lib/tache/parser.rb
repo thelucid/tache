@@ -1,4 +1,6 @@
-class Tache::Parser  
+class Tache::Parser
+  ALLOWED = /[\w\?!\/\.\-]/
+  
   def parse(source, tags = nil)
     return [] if source == ''
     
@@ -10,29 +12,22 @@ class Tache::Parser
     start = 0
     finish = 0
     line = 0
-    sections = []
     tokens = [['indent']]
+    sections = []
     left = tags.first
     right = tags.last
     type = nil
     before = nil
     indent = ''
-    standalone = nil    
+    standalone = nil
     
     while char = source[index]
-      case char
-      # Note: left[0] and right[0] could be the same if tags have been changed,
-      # hence the same when condition.
-      when left[0], right[0]
-        case state
-        when :seek
-          if char == '{'
-            start = index + 1
-            state = :pre
-            type = '{'
-          end
-        when :text
+      case state
+      when :text
+        case char
+        when left[0]
           if source[index, left.size] == left
+            # TODO: Handle indents better.
             if start == line && source[start...index] =~ /\A([\ \t]*)\Z/
               indent = $1
               standalone = true
@@ -41,25 +36,57 @@ class Tache::Parser
               indent = ''
               standalone = false
             end
-            
             before = index
             index += left.size - 1
             start = index + 1
             state = :seek
           end
-        when :name, :special, :post
+        when "\r"
+        when "\n"
+          feed = (source[index - 1] == "\r" ? "\r\n" : "\n")
+          tokens << ['text', source[start..index - feed.size] << feed]
+          tokens << ['indent'] unless index + 1 == source.size
+          start = index + 1
+          line = index + 1
+        end
+      when :seek
+        case char
+        when '#', '^', '/', '&', '>', '{'
+          start = index + 1
+          state = :pre
+          type = char
+        when '!', '='
+          start = index + 1
+          state = :special
+          type = char
+        when ALLOWED
+          state = :name
+          type = 'name'
+          start = index
+        end
+      when :pre
+        case char
+        when ALLOWED
+          state = :name
+          start = index
+        when ' '
+          # Valid space.
+        else
+          error "Invalid character in tag name: #{char.inspect}", source, index
+        end
+      when :name, :special, :post
+        case char
+        when right[0]
           if source[index, right.size] == right
-            finish = index if state == :name || state == :special
-            content = source[start...finish]
-           
-            # TODO: Probably a nicer way to handle tripples.
+            content = source[start...(state == :post ? finish : index)]
+
             if type == '{' && source[index, 1 + right.size] == ('}' + right)
               index += 1
               type = '&'
             end
-            
+
             index += right.size - 1
-              
+
             tail = ''
             if standalone
               carriage = source[index + 1] == "\r"
@@ -70,7 +97,7 @@ class Tache::Parser
                 tail = carriage ? "\r\n" : "\n"
               end
             end
-             
+     
             case type
             when 'name', '&'
               tokens << [type, content, indent, tail]
@@ -96,73 +123,28 @@ class Tache::Parser
                 left, right = *tags
               end
             end
-            
+    
             start = index + 1
             state = :text
             tokens << ['indent'] unless tail.empty? || index + 1 == source.size
           end
-        end
-      when '#', '^', '/', '&', '>'
-        case state
-        when :seek
-          start = index + 1
-          state = :pre
-          type = char
-        end
-      when '!', '='
-        case state
-        when :seek
-          start = index + 1
-          state = :special
-          type = char
-        end
-      when '{'
-        case state
-        when :seek
-          start = index + 1
-          state = :pre
-          type = '{'
-        end
-      when '}'
-        case state
-        when :name
+        when ALLOWED
+          # Valid char.
+        when '}'
           if type == '{'
             state = :post
             type = '&'
             finish = index
           end
-        end
-      when ' ', "\t"
-        case state
-        when :name
-          state = :post
-          finish = index
-        end
-      when /[\w\?!\/\.\-]/
-        case state
-        when :seek
-          state = :name
-          type = 'name'
-          start = index
-        when :pre
-          state = :name
-          start = index
-        end
-      when "\r"
-      when "\n"
-        case state
-        when :text
-          feed = (source[index - 1] == "\r" ? "\r\n" : "\n")
-          tokens << ['text', source[start..index - feed.size] << feed]
-          tokens << ['indent'] unless index + 1 == source.size
-          start = index + 1
-        end
-        line = index + 1
-      else
-        case state
-        when :seek, :pre, :name, :post
-          # FIXME: This won't happen if character caught above.
-          error "Invalid character in tag name: #{char.inspect}", source, index
+        when ' ', "\t"
+          if state == :name
+            state = :post
+            finish = index
+          end
+        else
+          unless state == :special
+            error "Invalid character in tag name: #{char.inspect}", source, index
+          end
         end
       end
       index += 1

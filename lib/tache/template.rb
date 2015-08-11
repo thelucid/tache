@@ -4,13 +4,13 @@ class Tache::Template
     @tags = options[:tags]
   end
   
+  def render(context, indent = '')
+    render_tokens(tokenize, context, indent)
+  end
+  
   def compile
     tokenize
     self
-  end
-  
-  def render(context, indent = '')
-    render_tokens(tokenize, context, indent)
   end
   
   def compiled?
@@ -32,37 +32,36 @@ class Tache::Template
     
     tokens.each do |token|
       type = token[0]
-      token_value = token[1]
+      content = token[1]
       
       case type
       when '#'
-        value = context[token_value]
+        value = context[content]
                 
         if value == true
           buffer << render_tokens(token[2], context)
         elsif value.respond_to?(:call)
           buffer << interpolate(value.call(token[3]), context, token[4])
         elsif value.respond_to?(:has_key?) || !value.respond_to?(:each)
-          context.push(value) do |child|
-            buffer << render_tokens(token[2], child)
-          end unless falsy?(value)
-        else
-          # It must respond to each
+          unless falsy?(value)
+            context.push(value) { |child| buffer << render_tokens(token[2], child) }
+          end
+        elsif value.respond_to?(:each)
           value.each do |item|
             context.push(item) { |child| buffer << render_tokens(token[2], child) }
           end
         end
       when '^'
-        value = context[token_value]
+        value = context[content]
         buffer << render_tokens(token[2], context) if falsy?(value)
       when '>'
-        value = context.partial(token_value)
+        value = context.partial(content)
         buffer << value.render(context, token[2]) if value
       when 'name', '&'
-        value = resolve(context, context[token_value], token[2], token[3], type == 'name')
+        value = resolve(context, context[content], token[2], token[3], type == 'name')
         buffer << value if value
       when 'text'
-        buffer << token_value
+        buffer << content
       when 'indent'
         buffer << indent
       end
@@ -73,8 +72,8 @@ class Tache::Template
   
   def resolve(context, value, indent, newline, escape)    
     if value.is_a?(String)
-      value = indent + value + newline
-      escape ? context.escape(value) : value
+      value = context.escape(value) if escape
+      indent + value + newline
     elsif value.is_a?(Tache::Template)
       value.render(context, indent)
     elsif value.respond_to?(:each)
@@ -89,14 +88,14 @@ class Tache::Template
         memo
       end
       last.is_a?(String) ? value << newline : value
-    elsif value.is_a?(Proc)
+    elsif value.respond_to?(:call)
       resolve(context, interpolate(value.call, context), indent, newline, escape)
     else
-      result = value.to_s
-      if result.is_a?(Tache::Template)
-        context.push(value) { |child| result.render(child, indent) }
+      stringish = value.to_s
+      if stringish.is_a?(Tache::Template)
+        context.push(value) { |child| stringish.render(child, indent) }
       else
-        resolve(context, result, indent, newline, escape)
+        resolve(context, stringish, indent, newline, escape)
       end
     end
   end
