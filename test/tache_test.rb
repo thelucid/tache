@@ -26,6 +26,18 @@ class TacheTest < Test::Unit::TestCase
     assert_equal 'Hello World!', result
   end
   
+  test 'can restore normal function after a block' do
+    template = Tache::Template.new('Hello {{thing}}')
+    
+    result = Tache.render(
+      '{{<layout}}{{$planet}}World!{{/planet}}{{/layout}}',
+      { 'after' => 'After!' },
+      { 'layout' => 'Hello {{$planet}}planet{{/planet}} {{after}}' }
+    )
+    
+    assert_equal 'Hello World! After!', result
+  end
+  
   Dir.glob("test/fixtures/*.mustache") do |file|
     basename  = File.basename(file, '.mustache')
     basepath  = File.join(File.dirname(file), basename)

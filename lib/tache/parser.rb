@@ -14,13 +14,13 @@ class Tache::Parser
     line = 0
     tokens = [['indent']]
     sections = []
-    layout = false
     left = tags.first
     right = tags.last
     type = nil
     before = nil
     indent = ''
     standalone = nil
+    within = nil
     
     while char = source[index]
       case state
@@ -99,22 +99,27 @@ class Tache::Parser
               end
             end
      
+            within = sections.last && sections.last[0]
+     
             case type
             when 'name', '&'
-              error "Illegal tag inside a partial override tag", source, before if layout
+              if within == '<'
+                error "Illegal tag inside a partial layout tag", source, before
+              end
               tokens << [type, content, indent, tail]
             when '#', '^', '<', '$'
-              if layout && type != '$'
-                error "Illegal tag inside a partial override tag", source, before
+              if within == '<' && type != '$'
+                error "Illegal tag inside a partial layout tag", source, before
               end
               nested = []
               tokens << ['text', indent] if !indent.empty? && tail.empty?
               tokens << [type, content, nested]
-              sections << [content, before, index + 1, tokens]
+              sections << [type, content, before, index + 1, tokens]
               tokens = nested
-              layout = (type == '<')
             when '>'
-              error "Illegal tag inside a partial override tag", source, before if layout
+              if within == '<'
+                error "Illegal tag inside a partial layout tag", source, before
+              end
               tokens << ['>', content, indent]
             when '!'
             when '='
@@ -125,11 +130,10 @@ class Tache::Parser
               end
             when '/'
               tokens << ['text', indent] if !indent.empty? && tail.empty? && index + 1 != source.size
-              name, at, pos, tokens = sections.pop
+              opener, name, at, pos, tokens = sections.pop
               error "Closing unopened '#{content}'", source, before unless name
               error "Unclosed section '#{name}'", source, at if name != content
-              tokens.last << source[pos...before] + indent << tags if tokens.last[0] == '#'
-              layout = (tokens.last[0] == '$')
+              tokens.last << source[pos...before] + indent << tags if opener == '#'
             end
     
             start = index + 1
@@ -159,15 +163,15 @@ class Tache::Parser
     end
     
     unless sections.empty?
-      name, at = sections.pop
+      opener, name, at = sections.pop
       error "Unclosed section '#{name}'", source, at
     end
     
     case state
-      when :text
-        tokens << ['text', source[start...index]] if start < index
-      when :name
-        error "Unclosed tag", source, before
+    when :text
+      tokens << ['text', source[start...index]] if start < index
+    when :name
+      error "Unclosed tag", source, before
     end
     
     tokens

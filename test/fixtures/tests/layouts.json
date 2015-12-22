@@ -155,32 +155,32 @@
       "expected": "<box><main><box><tweetbox classes=\"tweetbox-largetweetbox-user-styled\" attrs=\"data-rich-text\"></tweetbox></box></main></box>"
     },
     {
-      "name": "Regular sections are invalid inside a partial override tag",
+      "name": "Regular sections are invalid inside a partial layout tag",
       "data": { "section": true },
       "template": "{{<partial}}{{#section}}...{{/section}}{{/partial}}",
       "partials": { "partial": "" },
-      "expected_error": "Illegal tag inside a partial override tag"
+      "expected_error": "Illegal tag inside a partial layout tag"
     },
     {
-      "name": "Inverted sections are invalid inside a partial override tag",
+      "name": "Inverted sections are invalid inside a partial layout tag",
       "data": { "section": true },
       "template": "{{<partial}}{{^section}}...{{/section}}{{/partial}}",
       "partials": { "partial": "" },
-      "expected_error": "Illegal tag inside a partial override tag"
+      "expected_error": "Illegal tag inside a partial layout tag"
     },
     {
-      "name": "Variable tags are invalid inside a partial override tag",
+      "name": "Variable tags are invalid inside a partial layout tag",
       "data": { "section": true },
       "template": "{{<partial}}{{value}}{{/partial}}",
       "partials": { "partial": "" },
-      "expected_error": "Illegal tag inside a partial override tag"
+      "expected_error": "Illegal tag inside a partial layout tag"
     },
     {
-      "name": "Unescaped variable tags are invalid inside a partial override tag",
+      "name": "Unescaped variable tags are invalid inside a partial layout tag",
       "data": { "section": true },
       "template": "{{<partial}}{{{value}}}{{/partial}}",
       "partials": { "partial": "" },
-      "expected_error": "Illegal tag inside a partial override tag"
+      "expected_error": "Illegal tag inside a partial layout tag"
     }
   ]
 }
