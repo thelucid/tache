@@ -1,6 +1,7 @@
+base = File.expand_path('../tache', __FILE__)
+
 if defined?(Motion::Project::Config)
   Motion::Project::App.setup do |app|
-    base = File.expand_path('../tache', __FILE__)
     Dir.glob("#{base}/*.rb").each do |file|
       app.files.unshift(file)
     end
@@ -9,9 +10,9 @@ if defined?(Motion::Project::Config)
   end
 else
   # Tache
-  require 'tache/version'
-  require 'tache/context'
-  require 'tache/parser'
-  require 'tache/template'
-  require 'tache/tache'
+  require "#{base}/version"
+  require "#{base}/context"
+  require "#{base}/parser"
+  require "#{base}/template"
+  require "#{base}/tache"
 end

@@ -15,12 +15,17 @@ class Tache
   end
   
   def partials
-    @partials ||= PartialCollection.new
+    @partials ||= PartialCollection.new(self)
   end
   
   def partials=(hash)
-    @partials = PartialCollection.new
+    @partials = PartialCollection.new(self)
     hash.each { |key, value| @partials[key] = value }
+  end
+  
+  # TODO: test
+  def partial(name)
+    nil
   end
   
   def escape(string)
@@ -45,8 +50,25 @@ class Tache
   end
   
   class PartialCollection < Hash
+    def initialize(owner)
+      @owner = owner
+    end
+    
+    def [](key)
+      value = super || begin
+        partial = @owner.partial(key)
+        partial && (self[key] = templatize(partial))
+      end
+    end
+    
     def []=(key, value)
-      super key, value.is_a?(Template) ? value : Template.new(value)
+      super key, templatize(value)
+    end
+    
+    private
+    
+    def templatize(value)
+      value.is_a?(Template) ? value : Template.new(value)
     end
   end
 end

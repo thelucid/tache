@@ -2,9 +2,28 @@ require File.expand_path('../helper', __FILE__)
 require 'json'
 
 class TacheTest < Test::Unit::TestCase
-  test "hello world" do
-    template = Tache.compile("Hello {{thing}}")
-    assert_equal "Hello World", template.render({ 'thing' => 'World' })
+  test 'can have defaults in layout partials' do
+    template = Tache::Template.new('Hello {{thing}}')
+    
+    result = Tache.render(
+      '{{<layout}}{{/layout}}',
+      nil,
+      'layout' => 'Hello {{$planet}}planet{{/planet}}'
+    )
+    
+    assert_equal 'Hello planet', result
+  end
+  
+  test 'can override blocks in layout partials' do
+    template = Tache::Template.new('Hello {{thing}}')
+    
+    result = Tache.render(
+      '{{<layout}}{{$planet}}World!{{/planet}}{{/layout}}',
+      nil,
+      'layout' => 'Hello {{$planet}}planet{{/planet}}'
+    )
+    
+    assert_equal 'Hello World!', result
   end
   
   Dir.glob("test/fixtures/*.mustache") do |file|

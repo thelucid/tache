@@ -4,12 +4,12 @@ class Tache::Template
     @tags = options[:tags]
   end
   
-  def render(context, indent = '')
-    render_tokens(tokenize, context, indent)
+  def render(context, indent = '', blocks = {})
+    render_tokens(tokens, context, indent, blocks)
   end
   
   def compile
-    tokenize
+    tokens
     self
   end
   
@@ -22,12 +22,12 @@ class Tache::Template
   end
   
   private
-  
-  def tokenize
+
+  def tokens
     @tokens ||= Tache::Parser.new.parse(@source, @tags)
   end
-
-  def render_tokens(tokens, context, indent = '')
+  
+  def render_tokens(tokens, context, indent = '', blocks = {})
     buffer = ''
     
     tokens.each do |token|
@@ -39,24 +39,40 @@ class Tache::Template
         value = context[content]
                 
         if value == true
-          buffer << render_tokens(token[2], context)
+          buffer << render_tokens(token[2], context, '', blocks)
         elsif value.respond_to?(:call)
           buffer << interpolate(value.call(token[3]), context, token[4])
         elsif value.respond_to?(:has_key?) || !value.respond_to?(:each)
           unless falsy?(value)
-            context.push(value) { |child| buffer << render_tokens(token[2], child) }
+            context.push(value) { |child| buffer << render_tokens(token[2], child, '', blocks) }
           end
         elsif value.respond_to?(:each)
           value.each do |item|
-            context.push(item) { |child| buffer << render_tokens(token[2], child) }
+            context.push(item) { |child| buffer << render_tokens(token[2], child, '', blocks) }
           end
         end
       when '^'
         value = context[content]
-        buffer << render_tokens(token[2], context) if falsy?(value)
+        buffer << render_tokens(token[2], context, '', blocks) if falsy?(value)
       when '>'
         value = context.partial(content)
-        buffer << value.render(context, token[2]) if value
+        buffer << value.render(context, token[2], blocks) if value
+      when '<'
+        value = context.partial(content)
+
+        # TODO: Blocks could be stored as hash when parsing, which is fine as
+        # long as we don't want to allow anything but '$' tags within '<'.
+        if value
+          new_blocks = token[2].inject(blocks.dup) do |memo, sub|
+            next memo unless sub[0] == '$'
+            memo[sub[1]] = sub[2]
+            memo
+          end
+                              
+          buffer << value.render(context, '', new_blocks)
+        end
+      when '$'
+        buffer << render_tokens(blocks[content] || token[2], context)
       when 'name', '&'
         value = resolve(context, context[content], token[2], token[3], type == 'name')
         buffer << value if value

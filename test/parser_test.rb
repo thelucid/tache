@@ -52,7 +52,15 @@ class ParserTest < Test::Unit::TestCase
       "{{=<% %>=}}<%hi%>"                       => [ ["indent"], ["name", "hi", "", ""] ],
       "{{#a}}{{/a}}hi{{#b}}{{/b}}\n"            => [ ["indent"], ["#", "a", [], "", ["{{", "}}"]], ["text", "hi"], ["#", "b", [], "", ["{{", "}}"]], ["text", "\n"] ],
       "{{a}}\n{{b}}\n\n{{#c}}\n{{/c}}\n"        => [ ["indent"], ["name", "a", "", "\n"], ["indent"], ["name", "b", "", "\n"], ["indent"], ["text", "\n"], ["indent"], ["#", "c", [["indent"]], "", ["{{", "}}"]] ],
-      "{{#foo}}\n  {{#a}}\n    {{b}}\n  {{/a}}\n{{/foo}}\n" => [["indent"], ["#", "foo", [["indent"], ["#", "a", [["indent"], ["name", "b", "    ", "\n"], ["indent"]], "    {{b}}\n    ", ["{{", "}}"]], ["indent"]], "  {{#a}}\n    {{b}}\n  {{/a}}\n", ["{{", "}}"]]]
+      "{{#foo}}\n  {{#a}}\n    {{b}}\n  {{/a}}\n{{/foo}}\n" => [["indent"], ["#", "foo", [["indent"], ["#", "a", [["indent"], ["name", "b", "    ", "\n"], ["indent"]], "    {{b}}\n    ", ["{{", "}}"]], ["indent"]], "  {{#a}}\n    {{b}}\n  {{/a}}\n", ["{{", "}}"]]],
+      "{{< layout }}{{/ layout }}"              => [ ["indent"], ["<", "layout", []] ],
+      "{{ < layout }}{{ / layout }}"            => [ ["indent"], ["<", "layout", []] ],
+      "{{<layout}}{{/layout}}"                  => [ ["indent"], ["<", "layout", []] ],
+      "{{$ block }}{{/ block }}"                => [ ["indent"], ["$", "block", []] ],
+      "{{ $ block }}{{ / block }}"              => [ ["indent"], ["$", "block", []] ],
+      "{{$block}}{{/block}}"                    => [ ["indent"], ["$", "block", []] ],
+      "a\n{{<a}}\nb\n{{$b}}\nc\n{{/b}}\n{{/a}}\nd\n" =>
+                                                   [ ["indent"], ["text", "a\n"], ["indent"], ["<", "a", [["indent"], ["text", "b\n"], ["indent"], ["$", "b", [["indent"], ["text", "c\n"], ["indent"]]], ["indent"]]], ["indent"], ["text", "d\n"] ]
     }.each_with_index do |(template, tokens), index|
       assert_equal tokens, @parser.parse(template), "Item #{index} should match:\n#{template.inspect}"
     end

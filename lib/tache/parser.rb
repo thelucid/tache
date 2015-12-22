@@ -14,6 +14,7 @@ class Tache::Parser
     line = 0
     tokens = [['indent']]
     sections = []
+    layout = false
     left = tags.first
     right = tags.last
     type = nil
@@ -51,7 +52,7 @@ class Tache::Parser
         end
       when :seek
         case char
-        when '#', '^', '/', '&', '>', '{'
+        when '#', '^', '/', '&', '>', '{', '<', '$'
           start = index + 1
           state = :pre
           type = char
@@ -100,20 +101,20 @@ class Tache::Parser
      
             case type
             when 'name', '&'
+              error "Illegal tag inside a partial override tag", source, before if layout
               tokens << [type, content, indent, tail]
-            when '#', '^'
+            when '#', '^', '<', '$'
+              if layout && type != '$'
+                error "Illegal tag inside a partial override tag", source, before
+              end
               nested = []
               tokens << ['text', indent] if !indent.empty? && tail.empty?
               tokens << [type, content, nested]
               sections << [content, before, index + 1, tokens]
               tokens = nested
-            when '/'
-              tokens << ['text', indent] if !indent.empty? && tail.empty? && index + 1 != source.size
-              name, at, pos, tokens = sections.pop
-              error "Closing unopened '#{content}'", source, before unless name
-              error "Unclosed section '#{name}'", source, at if name != content
-              tokens.last << source[pos...before] + indent << tags
+              layout = (type == '<')
             when '>'
+              error "Illegal tag inside a partial override tag", source, before if layout
               tokens << ['>', content, indent]
             when '!'
             when '='
@@ -122,6 +123,13 @@ class Tache::Parser
                 error "Invalid tags '#{tags.join(', ')}'", source, before unless tags.size == 2
                 left, right = *tags
               end
+            when '/'
+              tokens << ['text', indent] if !indent.empty? && tail.empty? && index + 1 != source.size
+              name, at, pos, tokens = sections.pop
+              error "Closing unopened '#{content}'", source, before unless name
+              error "Unclosed section '#{name}'", source, at if name != content
+              tokens.last << source[pos...before] + indent << tags if tokens.last[0] == '#'
+              layout = (tokens.last[0] == '$')
             end
     
             start = index + 1
